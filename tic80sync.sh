@@ -1,8 +1,23 @@
 #!/bin/bash
 
-set -ve
+set -e
+trap "echo '*** ERROR.'; exit 1" ERR
+
 L=geo3d.tic
-R=/sdcard/Android/data/com.nesbox.tic/files/TIC-80/geo3d.tic
+
+if [ -d /sdcard ]; then
+  echo "Auto-detected platform: Android."
+  R=/sdcard/Android/data/com.nesbox.tic/files/TIC-80/geo3d.tic
+  echo "TIC-80 file: $R"
+elif [ -d /c/Users ]; then
+  echo "Auto-detected platform: Windows"
+  R=/c/Users/bruno/AppData/Roaming/com.nesbox.tic/TIC-80/geo3d.tic
+fi
+
+echo "Local (repo) file:"
+echo "  $L"
+echo "TIC-80 file:"
+echo "  $R"
 
 lt=$(stat -c %Y $L)
 rt=$(stat -c %Y $R)
@@ -11,9 +26,6 @@ if diff -q $L $R; then
   echo "Already in sync (contents same)."
   exit 0
 fi
-
-echo "Local  $lt"
-echo "Remote $rt"
 
 if [ $lt -gt $rt ]; then
   echo "Local is newer than remote."
