@@ -71,6 +71,11 @@ Q={
  pvMat=nil,
 }
 
+-- Init 3d library.
+-- fovy: field of view angle, degrees
+-- asp: aspect ratio, w/h
+-- n: near clip
+-- f: far clip
 function QInit(fovy,asp,n,f)
  Q.projMat=QMNew()
  Q.viewMat=QMNew()
@@ -81,16 +86,20 @@ function QInit(fovy,asp,n,f)
  QSetViewMat(QMNew())
 end
 
+-- Update view matrix.
 function QSetViewMat(m)
  QMCopy(Q.viewMat,m)
  QMMul(Q.pvMat,Q.projMat,Q.viewMat)
 end
 
--- transforms a point (vec3)
+-- Transforms a point (vec3 or vec4).
+-- Returns screen coords in dest.
 function QTransf(dest,p)
  QMMulVec4(dest,Q.pvMat,p)
+ -- Perspective division.
  local ndcx=dest[1]/dest[4]
  local ndcy=dest[2]/dest[4]
+ -- Convert to screen coords.
  dest[1]=SCRW*0.5+ndcx*SCRW*0.5
  dest[2]=SCRH*0.5-ndcy*SCRH*0.5
  dest[3]=-dest[4]  -- clip.w=-eye.z
@@ -101,6 +110,7 @@ end
 -- Q: RENDERING
 ----------------------------------------
 
+-- Renders given geometry with given model matrix.
 local QGeoRend_tmp={0,0,0,0}
 function QGeoRend(geom,mat)
  local t=QGeoRend_tmp
@@ -111,32 +121,34 @@ function QGeoRend(geom,mat)
   QTransf(t,t)
   Q3RoundXy(geom.spos[i],t)
  end
+ -- Rasterize all the tris
  for i=1,#geom.tris do
   QTriRast(geom,geom.tris[i])
  end
 end
 
-function QCalcYOrd(p1,p2,p3,result)
- if p1[2]>=p2[2] and p1[2]>=p3[2] then
-  -- p1 is top.
+-- Calculates order of the given values.
+function QCalcOrd(v1,v2,v3,result)
+ if v1>=v2 and v1>=v3 then
+  -- v1 is top.
   result[1]=1
-  if p2[2]>=p3[2] then
+  if v2>=v3 then
    result[2]=2 result[3]=3
   else
    result[2]=3 result[3]=2
   end
- elseif p2[2]>=p1[2] and p2[2]>=p3[2] then
-  -- p2 is top.
+ elseif v2>=v1 and v2>=v3 then
+  -- v2 is top.
   result[1]=2
-  if p1[2]>=p3[2] then
+  if v1>=v3 then
    result[2]=1 result[3]=3
   else 
    result[2]=3 result[3]=1
   end
  else
-  -- p3 is top
+  -- v3 is top
   result[1]=3
-  if p1[2]>=p2[2] then
+  if v1>=v2 then
    result[2]=1 result[3]=2
   else
    result[2]=2 result[3]=1
@@ -153,7 +165,7 @@ function QTriRast(geom,tri)
  if Q.CULL and QTriWind(p1,p2,p3)<0
    then return end
  local yord=QTriRast_tmp
- QCalcYOrd(p1,p2,p3,yord)
+ QCalcOrd(p1[2],p2[2],p3[2],yord)
  local top=geom.spos[tri.v[yord[1]]]
  local mid=geom.spos[tri.v[yord[2]]]
  local bot=geom.spos[tri.v[yord[3]]]
