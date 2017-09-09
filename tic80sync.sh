@@ -7,6 +7,11 @@ R=/sdcard/Android/data/com.nesbox.tic/files/TIC-80/geo3d.tic
 lt=$(stat -c %Y $L)
 rt=$(stat -c %Y $R)
 
+if diff -q $L $R; then
+  echo "Already in sync (contents same)."
+  exit 0
+fi
+
 echo "Local  $lt"
 echo "Remote $rt"
 
@@ -21,7 +26,7 @@ elif [ $lt -lt $rt ]; then
   src=$R
   dest=$L
 else
-  echo "Already in sync."
+  echo "Already in sync (timestamps same)."
   exit 0
 fi
 
