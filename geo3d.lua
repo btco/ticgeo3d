@@ -21,7 +21,8 @@ local SCRW=240
 
 local G={
  CULL=false,
- tr={0,0,-150},
+ eye={0,0,-150},
+ yaw=0,
  modelMat=nil,
  tmp=nil,
  tmp2=nil,
@@ -31,14 +32,9 @@ function Boot()
  G.modelMat=QMNew()
  G.tmp=QMNew()
  G.tmp2=QMNew()
+ G.modelMat=QMNew()
  QInit(60,SCRW/SCRH,0.1,1000)
- UpdateModelMat()
-end
-
-function UpdateModelMat()
- QMTransl(G.tmp,G.tr)
- QMRot(G.tmp2,{0,1,0},time()/500)
- QMMul(G.modelMat,G.tmp,G.tmp2)
+ QSetViewPos(G.eye,G.yaw)
 end
 
 function TIC()
@@ -50,16 +46,16 @@ function TIC()
   },
   spos={},
   tris={
-   {v={1,2,3},texc={{0,0},{0,1},{1,1}},mtl=-33},
-   {v={1,3,4},texc={{0,0},{1,1},{1,0}},mtl=-33}
+   {v={1,2,3},texc={{0,0},{0,1},{1,1}},mtl=-1},
+   {v={1,3,4},texc={{0,0},{1,1},{1,0}},mtl=-1}
   }
  }
 
  QGeoRend(ge,G.modelMat)
  
- G.tr[1]=G.tr[1]+(btn(2) and -1 or btn(3) and 1 or 0)
- G.tr[3]=G.tr[3]+(btn(0) and -1 or btn(1) and 1 or 0)
- UpdateModelMat()
+ G.eye[1]=G.eye[1]+(btn(2) and -1 or btn(3) and 1 or 0)
+ G.eye[3]=G.eye[3]+(btn(0) and 1 or btn(1) and -1 or 0)
+ QSetViewPos(G.eye,G.yaw)
 end
 
 -------------------------------------------------
@@ -98,7 +94,30 @@ end
 -- Update view matrix.
 function QSetViewMat(m)
  QMCopy(Q.viewMat,m)
+ _QUpdatePvm()
+end
+
+function _QUpdatePvm()
  QMMul(Q.pvMat,Q.projMat,Q.viewMat)
+end
+
+-- (Convenience) Set view matrix from eye pos
+-- and yaw angle.
+-- eye: position of eye.
+-- yaw: yaw angle (radians).
+local QSetViewPos_tmp={}
+local QSetViewPos_tmp2={}
+local QSetViewPos_tmp3={}
+function QSetViewPos(eye,yaw)
+ local xlatem=QSetViewPos_tmp
+ local rotm=QSetViewPos_tmp2
+ local v=QSetViewPos_tmp3
+ Q3Scale(v,eye,-1) -- v=-eye
+ QMTransl(xlatem,v)
+ Q3Set(v,0,1,0)
+ QMRot(rotm,v,-yaw)
+ QMMul(Q.viewMat,rotm,xlatem)
+ _QUpdatePvm()
 end
 
 -- Transforms a point (vec3 or vec4).
@@ -381,6 +400,8 @@ function QMTransl(m,t)
 end
 
 -- Rotation from axis angle
+-- axis: axis of rotation
+-- phi: angle in RADIANS.
 function QMRot(m,axis,phi)
  local c=cos(phi)
  local s=sin(phi)
