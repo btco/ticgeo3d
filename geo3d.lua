@@ -313,13 +313,16 @@ function _QTriRastFlat(a,ta,b,tb,c,tc,mtl)
    x2c=QClamp(QRound(x2),0,SCRW-1)
    local xinc=x2c>=x1c and 1 or -1
    for x=x1c,x2c,xinc do
-    if mtl>=0 then
-     -- Plain color.
-     pix(x,y,mtl)
-    else
-     -- Sample texture (with perspective correction).
-     local u,v=_QPerspTexC(x1,z1,u1,v1,x2,z2,u2,v2,x)
-     pix(x,y,_QTexSamp(-mtl,u,v))
+    local z=QInterp(x1,z1,x2,z2,x)
+    if -z>=ncl and -z<=fcl then
+      if mtl>=0 then
+       -- Plain color.
+       pix(x,y,mtl)
+      else
+       -- Sample texture (with perspective correction).
+       local u,v=_QPerspTexC(x1,z1,u1,v1,x2,z2,u2,v2,x)
+       pix(x,y,_QTexSamp(-mtl,u,v))
+      end
     end
    end
   end
