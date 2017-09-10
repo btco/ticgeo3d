@@ -52,11 +52,15 @@ function TIC()
  }
 
  QGeoRend(ge,G.modelMat)
- 
- G.eye[1]=G.eye[1]+(btn(2) and -1 or btn(3) and 1 or 0)
- G.eye[3]=G.eye[3]+(btn(0) and -1 or btn(1) and 1 or 0)
+
+ local fwd=btn(0) and 1 or btn(1) and -1 or 0
+ local right=btn(2) and -1 or btn(3) and 1 or 0
+
+ G.yaw=G.yaw-right*0.01
+ G.eye[1]=G.eye[1]-math.sin(G.yaw)*fwd*2.0
+ G.eye[3]=G.eye[3]-math.cos(G.yaw)*fwd*2.0
  QSetViewPos(G.eye,G.yaw)
- print(G.eye[1]..", "..G.eye[2]..", "..G.eye[3])
+ print("yaw="..G.yaw.."  pos="..G.eye[1]..", "..G.eye[2]..", "..G.eye[3])
 end
 
 -------------------------------------------------
@@ -105,7 +109,8 @@ end
 -- (Convenience) Set view matrix from eye pos
 -- and yaw angle.
 -- eye: position of eye.
--- yaw: yaw angle (radians).
+-- yaw: yaw angle (radians), that is, rotation about Y
+-- axis where 0 is looking along negative Z.
 local QSetViewPos_tmp={}
 local QSetViewPos_tmp2={}
 local QSetViewPos_tmp3={}
