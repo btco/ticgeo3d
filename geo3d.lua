@@ -119,7 +119,6 @@ function QSetViewPos(eye,yaw)
  QMRot(rotm,v,-yaw)
  QMMul(Q.viewMat,rotm,xlatem)
  _QUpdatePvm()
- QTrace("viewMat",Q.viewMat)
 end
 
 -- Transforms a point (vec3 or vec4).
@@ -143,18 +142,13 @@ end
 -- Renders given geometry with given model matrix.
 local QGeoRend_tmp={0,0,0,0}
 function QGeoRend(geom,mat)
-
- QTrace("projMat", Q.projMat)
-
  local t=QGeoRend_tmp
  -- transform all coords to screen space
  for i=1,#geom.opos do
   QMMulVec4(t,mat,geom.opos[i])
-  QTrace("mat*opos["..i,t)
   geom.spos[i]=geom.spos[i] or {0,0,0}
   QTransf(t,t)
   Q3RoundXy(geom.spos[i],t)
-  QTrace("spos["..i,geom.spos[i])
  end
  -- Rasterize all the tris
  for i=1,#geom.tris do
