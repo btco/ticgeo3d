@@ -21,7 +21,7 @@ local SCRW=240
 
 local G={
  CULL=false,
- eye={0,0,-150},
+ eye={0,0,150},
  yaw=0,
  modelMat=nil,
  tmp=nil,
@@ -54,8 +54,9 @@ function TIC()
  QGeoRend(ge,G.modelMat)
  
  G.eye[1]=G.eye[1]+(btn(2) and -1 or btn(3) and 1 or 0)
- G.eye[3]=G.eye[3]+(btn(0) and 1 or btn(1) and -1 or 0)
+ G.eye[3]=G.eye[3]+(btn(0) and -1 or btn(1) and 1 or 0)
  QSetViewPos(G.eye,G.yaw)
+ print(G.eye[1]..", "..G.eye[2]..", "..G.eye[3])
 end
 
 -------------------------------------------------
@@ -118,6 +119,7 @@ function QSetViewPos(eye,yaw)
  QMRot(rotm,v,-yaw)
  QMMul(Q.viewMat,rotm,xlatem)
  _QUpdatePvm()
+ QTrace("viewMat",Q.viewMat)
 end
 
 -- Transforms a point (vec3 or vec4).
@@ -141,13 +143,18 @@ end
 -- Renders given geometry with given model matrix.
 local QGeoRend_tmp={0,0,0,0}
 function QGeoRend(geom,mat)
+
+ QTrace("projMat", Q.projMat)
+
  local t=QGeoRend_tmp
  -- transform all coords to screen space
  for i=1,#geom.opos do
   QMMulVec4(t,mat,geom.opos[i])
+  QTrace("mat*opos["..i,t)
   geom.spos[i]=geom.spos[i] or {0,0,0}
   QTransf(t,t)
   Q3RoundXy(geom.spos[i],t)
+  QTrace("spos["..i,geom.spos[i])
  end
  -- Rasterize all the tris
  for i=1,#geom.tris do
@@ -275,10 +282,11 @@ function _QTriRastFlat(a,ta,b,tb,c,tc,mtl)
    then return end
  local ncl=Q.nearClip
  local fcl=Q.farClip
- -- abort if z is out of bounds
- if (a[3]<ncl and zf1<ncl and zf2<ncl) or 
-   (a[3]>fcl and zf1>fcl and zf2>fcl)
-   then return end
+ -- abort if z is out of bounds (z should be
+ -- negative).
+ if (-a[3]<ncl and -zf1<ncl and -zf2<ncl) or 
+    (-a[3]>fcl and -zf1>fcl and -zf2>fcl)
+    then return end
  
  local dy=yf>=ys and 1 or -1
  -- Rasterize each scanline.
@@ -419,7 +427,7 @@ function QMRot(m,axis,phi)
  m[9]=-y*s+z*x*c1
  m[10]=x*s+z*y*c1
  m[11]=c+z*z*c1
- m[16]=-1
+ m[16]=1
 end
 
 -- Inner product of row r of a with
