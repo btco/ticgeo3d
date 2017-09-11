@@ -33,11 +33,12 @@ function Boot()
  G.tmp=QMNew()
  G.tmp2=QMNew()
  G.modelMat=QMNew()
- QInit(60,SCRW/SCRH,0.1,1000)
+ QInit(60,SCRW/SCRH,0.3,1000)
  QSetViewPos(G.eye,G.yaw)
 end
 
 function TIC()
+ local stime=time()
  cls(2)
  local ge={
   opos={
@@ -51,6 +52,15 @@ function TIC()
   }
  }
 
+ --QMTransl(G.modelMat,{0,0,-200})
+ --QGeoRend(ge,G.modelMat)
+ --QMTransl(G.modelMat,{0,0,-150})
+ --QGeoRend(ge,G.modelMat)
+ --QMTransl(G.modelMat,{0,0,-100})
+ --QGeoRend(ge,G.modelMat)
+ --QMTransl(G.modelMat,{0,0,-50})
+ --QGeoRend(ge,G.modelMat)
+ QMTransl(G.modelMat,{0,0,0})
  QGeoRend(ge,G.modelMat)
 
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
@@ -61,6 +71,7 @@ function TIC()
  G.eye[3]=G.eye[3]-math.cos(G.yaw)*fwd*2.0
  QSetViewPos(G.eye,G.yaw)
  print("yaw="..G.yaw.."  pos="..G.eye[1]..", "..G.eye[2]..", "..G.eye[3])
+ print(time()-stime,5,125)
 end
 
 -------------------------------------------------
@@ -193,6 +204,8 @@ function _QTriRast(geom,tri)
  local p1=geom.spos[tri.v[1]]
  local p2=geom.spos[tri.v[2]]
  local p3=geom.spos[tri.v[3]]
+ local ncl=Q.nearClip
+ if -p1[3]<ncl or -p2[3]<ncl or -p3[3]<ncl then return end
  -- Cull back faces.
  if Q.CULL and _QTriWind(p1,p2,p3)<0
    then return end
@@ -321,7 +334,8 @@ function _QTriRastFlat(a,ta,b,tb,c,tc,mtl)
       else
        -- Sample texture (with perspective correction).
        local u,v=_QPerspTexC(x1,z1,u1,v1,x2,z2,u2,v2,x)
-       pix(x,y,_QTexSamp(-mtl,u,v))
+       -- Put pixel.
+       poke4(y*240+x,_QTexSamp(-mtl,u,v))
       end
     end
    end
