@@ -1,5 +1,5 @@
 local G={
- ex=0, ey=0, ez=0, yaw=0,
+ ex=0, ey=0, ez=100, yaw=0,
 }
 
 function Boot()
