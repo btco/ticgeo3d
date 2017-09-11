@@ -33,7 +33,7 @@ function Boot()
  G.tmp=QMNew()
  G.tmp2=QMNew()
  G.modelMat=QMNew()
- QInit(60,SCRW/SCRH,0.3,1000)
+ QInit(60,SCRW/SCRH,0.1,1000)
  QSetViewPos(G.eye,G.yaw)
 end
 
@@ -104,6 +104,7 @@ function QInit(fovy,asp,n,f)
  Q.nearClip=n
  Q.farClip=f
  QMPersp(Q.projMat,fovy,asp,n,f)
+ QTrace("projMat",Q.projMat)
  QSetViewMat(QMNew())
 end
 
