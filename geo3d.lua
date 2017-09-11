@@ -509,8 +509,8 @@ function QMFrust(dest,l,r,b,t,n,f)
  dest[3]=(r+l)/(r-l)
  dest[6]=2*n/(t-b)
  dest[7]=(t+b)/(t-b)
- dest[11]=(f+n)/(f-n)
- dest[12]=2*f*n/(f-n)
+ dest[11]=(f+n)/(n-f)
+ dest[12]=2*f*n/(n-f)
  dest[15]=-1
 end
 

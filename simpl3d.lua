@@ -49,7 +49,7 @@ function S3Proj(x,y,z)
  -- Hard-coded from manual matrix calculations:
  local px=0.9815*c*x+0.9815*s*z+0.9815*a
  local py=1.7321*y-1.7321*S.ey
- local pz=-s*x+z*c+b+0.2
+ local pz=s*x-z*c-b-0.2
  local pw=x*s-z*c-b
  local ndcx=px/pw
  local ndcy=py/pw
