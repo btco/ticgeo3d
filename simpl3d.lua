@@ -26,7 +26,7 @@ end
 local S={
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
- cosYaw=0, sinYaw=0, projA=0, projB=0,
+ cosYaw=0, sinYaw=0, termA=0, termB=0,
 }
 
 local sin,cos=math.sin,math.cos
@@ -40,15 +40,15 @@ function S3SetCam(ex,ey,ez,yaw)
  S.ex,S.ey,S.ez,S.yaw=ex,ey,ez,yaw
  -- Precompute some factors we will need often:
  S.cosYaw,S.sinYaw=cos(yaw),sin(yaw)
- S.projA=-ex*S.cosYaw-ez*S.sinYaw
- S.projB=ex*S.sinYaw+ez*S.cosYaw
+ S.termA=-ex*S.cosYaw-ez*S.sinYaw
+ S.termB=ex*S.sinYaw-ez*S.cosYaw
 end
 
 function S3Proj(x,y,z)
- local c,s,a,b=S.cosYaw,S.sinYaw,S.projA,S.projB
+ local c,s,a,b=S.cosYaw,S.sinYaw,S.termA,S.termB
  -- Hard-coded from manual matrix calculations:
  local px=0.9815*c*x+0.9815*s*z+0.9815*a
- local py=1.7321*y-1.7321*S.ez
+ local py=1.7321*y-1.7321*S.ey
  local pz=-s*x+z*c+b+0.2
  local pw=x*s-z*c-b
  local ndcx=px/pw
