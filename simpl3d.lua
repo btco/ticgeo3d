@@ -34,8 +34,11 @@ function TIC()
 end
 
 ---------------------------------------------------
+-- S3 "Simple 3D" library
+---------------------------------------------------
 
 local S={
+ -- eye coordinates (world coords)
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
  cosMy=0, sinMy=0, termA=0, termB=0,
@@ -43,9 +46,8 @@ local S={
  -- so if you change then, also update the math.
  NCLIP=0.1,
  FCLIP=1000,
- -- min world Y coord of all walls
+ -- min/max world Y coord of all walls
  W_BOT_Y=0,
- -- max world Y coord of all walls
  W_TOP_Y=50,
  -- list of all walls, each with
  --
