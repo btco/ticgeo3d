@@ -4,7 +4,10 @@ local G={
 
 function Boot()
  S3Init()
- S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=14})
+ S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=1})
+ S3WallAdd({lx=50,lz=0,rx=50,rz=-50,tid=3})
+ S3WallAdd({lx=50,lz=-50,rx=0,rz=-50,tid=5})
+ S3WallAdd({lx=0,lz=-50,rx=0,rz=0,tid=7})
 end
 
 function TIC()
@@ -13,9 +16,15 @@ function TIC()
  --G.ez=G.ez+(btn(0) and -1 or (btn(1) and 1 or 0))
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
- G.yaw=G.yaw-right*0.01
  G.ex=G.ex-math.sin(G.yaw)*fwd*2.0
  G.ez=G.ez-math.cos(G.yaw)*fwd*2.0
+ if btn(4) then
+  -- strafe
+  G.ex=G.ex-math.sin(G.yaw-1.5708)*right*2.0
+  G.ez=G.ez-math.cos(G.yaw-1.5708)*right*2.0
+ else
+  G.yaw=G.yaw-right*0.01
+ end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
 
  --local p1x,p1y,p1z=S3Proj(-50,-50,50)
@@ -71,7 +80,7 @@ end
 
 function S3WallAdd(w)
  table.insert(S.walls,{lx=w.lx,lz=w.lz,rx=w.rx,
-   rz=w.lz,tid=w.tid})
+   rz=w.rz,tid=w.tid})
 end
 
 function S3SetCam(ex,ey,ez,yaw)
@@ -119,9 +128,6 @@ function _S3ProjWall(w)
  local topy=S.W_TOP_Y
  local boty=S.W_BOT_Y
 
- trace("wL: "..w.lx..", "..w.lz)
- trace("wR: "..w.rx..", "..w.rz)
-
  -- notation: lt=left top, rt=right top, etc.
  local ltx,lty,ltz=S3Proj(w.lx,topy,w.lz)
  local rtx,rty,rtz=S3Proj(w.rx,topy,w.rz)
@@ -132,9 +138,6 @@ function _S3ProjWall(w)
 
  w.slx,w.slz,w.slty,w.slby=ltx,ltz,lty,lby
  w.srx,w.srz,w.srty,w.srby=rtx,rtz,rty,rby
-
- trace("L: "..w.slx..", "..w.slz..", "..w.slty..", "..w.slby)
- trace("R: "..w.srx..", "..w.srz..", "..w.srty..", "..w.srby)
 
  if w.slz<S.NCLIP and w.srz<S.NCLIP
    then return false end
@@ -193,8 +196,12 @@ end
 --   ty,by: top and bottom y coordinate.
 --   u: horizontal texture coordinate (0 to 1)
 function _RendTexCol(tid,x,ty,by,u)
- -- TODO: actually sample the texture
  line(x,ty,x,by,tid)
+ local aty,aby=max(ty,0),min(by,SCRH-1)
+ for y=aty,aby do
+  local v=_S3Interp(ty,0,by,1,y)
+  pix(x,y,_S3TexSamp(tid,u,v))
+ end
 end
 
 function S3Round(x) return floor(x+0.5) end
@@ -207,6 +214,23 @@ function _S3Interp(x1,y1,x2,y2,x)
  return x<=x1 and y1 or (x>=x2 and y2 or
    (y1+(y2-y1)*(x-x1)/(x2-x1)))
 end
+
+-- Sample texture ID tid at texture coords u,v.
+-- The texture ID is just the sprite ID where
+-- the texture begins in sprite memory.
+function _S3TexSamp(tid,u,v)
+ -- texture size in pixels
+ -- TODO make this variable
+ local SX=16
+ local SY=16
+ local tx=S3Round(u*SX)%SX
+ local ty=S3Round(v*SY)%SY
+ local spid=tid+(ty//8)*16+(tx//8)
+ tx=tx%8
+ ty=ty%8
+ return peek4(0x8000+spid*64+ty*8+tx)
+end
+
 
 --------------------------------------------------
 Boot()
