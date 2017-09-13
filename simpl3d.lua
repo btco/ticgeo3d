@@ -12,8 +12,6 @@ end
 
 function TIC()
  cls(2)
- --G.ex=G.ex+(btn(2) and -1 or (btn(3) and 1 or 0))
- --G.ez=G.ez+(btn(0) and -1 or (btn(1) and 1 or 0))
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
  G.ex=G.ex-math.sin(G.yaw)*fwd*2.0
@@ -26,14 +24,6 @@ function TIC()
   G.yaw=G.yaw-right*0.01
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
-
- --local p1x,p1y,p1z=S3Proj(-50,-50,50)
- --local p2x,p2y,p2z=S3Proj(-50,-50,-50)
- --local p3x,p3y,p3z=S3Proj(50,-50,-50)
- --local p4x,p4y,p4z=S3Proj(50,-50,50)
-
- --tri(p1x,p1y,p2x,p2y,p3x,p3y,14)
- --tri(p1x,p1y,p3x,p3y,p4x,p4y,13)
  S3Rend()
 end
 
@@ -139,9 +129,10 @@ function _S3ProjWall(w)
  w.slx,w.slz,w.slty,w.slby=ltx,ltz,lty,lby
  w.srx,w.srz,w.srty,w.srby=rtx,rtz,rty,rby
 
- if w.slz<S.NCLIP and w.srz<S.NCLIP
+ -- TODO: fix aggressive clipping
+ if w.slz<S.NCLIP or w.srz<S.NCLIP
    then return false end
- if w.slz>S.FCLIP and w.srz>S.FCLIP
+ if w.slz>S.FCLIP or w.srz>S.FCLIP
    then return false end
  return true
 end
@@ -184,8 +175,10 @@ function _RendHbuf(hbuf)
  for x=0,scrw-1 do
   local hb=hbuf[x+1]  -- hbuf is 1-indexed
   local w=hb.wall
-  if w then _RendTexCol(w.tid,x,hb.ty,hb.by,
-    (x-w.slx)/(w.srx-w.slx)) end
+  if w then
+   local u=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
+   _RendTexCol(w.tid,x,hb.ty,hb.by,u)
+  end
  end
 end
 
@@ -199,9 +192,17 @@ function _RendTexCol(tid,x,ty,by,u)
  line(x,ty,x,by,tid)
  local aty,aby=max(ty,0),min(by,SCRH-1)
  for y=aty,aby do
+  -- affine texture mapping for the v coord is ok,
+  -- since walls are never slanted.
   local v=_S3Interp(ty,0,by,1,y)
   pix(x,y,_S3TexSamp(tid,u,v))
  end
+end
+
+function _S3PerspTexU(lx,lz,rx,rz,x)
+ local a=_S3Interp(lx,0,rx,1,x) 
+ -- perspective-correct texture mapping
+ return (a/((1-a)/lz+a/rz))/rz
 end
 
 function S3Round(x) return floor(x+0.5) end
