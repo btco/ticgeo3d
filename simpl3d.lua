@@ -9,8 +9,13 @@ end
 
 function TIC()
  cls(2)
- G.ex=G.ex+(btn(2) and -1 or (btn(3) and 1 or 0))
- G.ez=G.ez+(btn(0) and -1 or (btn(1) and 1 or 0))
+ --G.ex=G.ex+(btn(2) and -1 or (btn(3) and 1 or 0))
+ --G.ez=G.ez+(btn(0) and -1 or (btn(1) and 1 or 0))
+ local fwd=btn(0) and 1 or btn(1) and -1 or 0
+ local right=btn(2) and -1 or btn(3) and 1 or 0
+ G.yaw=G.yaw-right*0.01
+ G.ex=G.ex-math.sin(G.yaw)*fwd*2.0
+ G.ez=G.ez-math.cos(G.yaw)*fwd*2.0
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
 
  --local p1x,p1y,p1z=S3Proj(-50,-50,50)
@@ -28,7 +33,7 @@ end
 local S={
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
- cosYaw=0, sinYaw=0, termA=0, termB=0,
+ cosMy=0, sinMy=0, termA=0, termB=0,
  -- These are hard-coded into the projection function,
  -- so if you change then, also update the math.
  NCLIP=0.1,
@@ -72,13 +77,13 @@ end
 function S3SetCam(ex,ey,ez,yaw)
  S.ex,S.ey,S.ez,S.yaw=ex,ey,ez,yaw
  -- Precompute some factors we will need often:
- S.cosYaw,S.sinYaw=cos(yaw),sin(yaw)
- S.termA=-ex*S.cosYaw-ez*S.sinYaw
- S.termB=ex*S.sinYaw-ez*S.cosYaw
+ S.cosMy,S.sinMy=cos(-yaw),sin(-yaw)
+ S.termA=-ex*S.cosMy-ez*S.sinMy
+ S.termB=ex*S.sinMy-ez*S.cosMy
 end
 
 function S3Proj(x,y,z)
- local c,s,a,b=S.cosYaw,S.sinYaw,S.termA,S.termB
+ local c,s,a,b=S.cosMy,S.sinMy,S.termA,S.termB
  -- Hard-coded from manual matrix calculations:
  local px=0.9815*c*x+0.9815*s*z+0.9815*a
  local py=1.7321*y-1.7321*S.ey
@@ -93,6 +98,7 @@ function S3Rend()
  -- TODO: compute potentially visible set instead.
  local pvs=S.walls
  local hbuf=S.hbuf
+ -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
  _PrepHbuf(hbuf,pvs)
  _RendHbuf(hbuf)
 end
