@@ -4,10 +4,16 @@ local G={
 
 function Boot()
  S3Init()
+
  S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=1})
  S3WallAdd({lx=50,lz=0,rx=50,rz=-50,tid=3})
  S3WallAdd({lx=50,lz=-50,rx=0,rz=-50,tid=5})
  S3WallAdd({lx=0,lz=-50,rx=0,rz=0,tid=7})
+
+ S3WallAdd({lx=100,lz=0,rx=150,rz=0,tid=1})
+ S3WallAdd({lx=150,lz=0,rx=150,rz=-50,tid=3})
+ S3WallAdd({lx=150,lz=-50,rx=100,rz=-50,tid=5})
+ S3WallAdd({lx=100,lz=-50,rx=100,rz=0,tid=7})
 end
 
 function TIC()
@@ -21,7 +27,7 @@ function TIC()
   G.ex=G.ex-math.sin(G.yaw-1.5708)*right*2.0
   G.ez=G.ez-math.cos(G.yaw-1.5708)*right*2.0
  else
-  G.yaw=G.yaw-right*0.01
+  G.yaw=G.yaw-right*0.03
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
