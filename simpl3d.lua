@@ -1,7 +1,32 @@
+-- Tile size in world coords
+local TSIZE=50
+
 local G={
  ex=0, ey=25, ez=100, yaw=0,
  lvlNo=0,
  lvl=nil,  -- reference to LVL[lvlNo]
+}
+
+-- tile flags
+local TF={
+ -- walls in the tile
+ N=1,
+ E=2,
+ S=4,
+ W=8,
+}
+
+-- tile descriptors
+-- w: which walls this tile contains
+local TD={
+ [1]={w=TF.S|TF.E,tid=1},
+ [2]={w=TF.S,tid=1},
+ [3]={w=TF.S|TF.W,tid=1},
+ [17]={w=TF.E,tid=1},
+ [19]={w=TF.W,tid=1},
+ [33]={w=TF.N|TF.E,tid=1},
+ [34]={w=TF.N,tid=1},
+ [35]={w=TF.N|TF.W,tid=1},
 }
 
 local LVL={
@@ -14,16 +39,16 @@ local LVL={
 
 function Boot()
  S3Init()
+ StartLevel(1)
+ --S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=256})
+ --S3WallAdd({lx=50,lz=0,rx=50,rz=-50,tid=258})
+ --S3WallAdd({lx=50,lz=-50,rx=0,rz=-50,tid=260})
+ --S3WallAdd({lx=0,lz=-50,rx=0,rz=0,tid=262})
 
- S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=256})
- S3WallAdd({lx=50,lz=0,rx=50,rz=-50,tid=258})
- S3WallAdd({lx=50,lz=-50,rx=0,rz=-50,tid=260})
- S3WallAdd({lx=0,lz=-50,rx=0,rz=0,tid=262})
-
- S3WallAdd({lx=100,lz=0,rx=150,rz=0,tid=256})
- S3WallAdd({lx=150,lz=0,rx=150,rz=-50,tid=258})
- S3WallAdd({lx=150,lz=-50,rx=100,rz=-50,tid=260})
- S3WallAdd({lx=100,lz=-50,rx=100,rz=0,tid=262})
+ --S3WallAdd({lx=100,lz=0,rx=150,rz=0,tid=256})
+ --S3WallAdd({lx=150,lz=0,rx=150,rz=-50,tid=258})
+ --S3WallAdd({lx=150,lz=-50,rx=100,rz=-50,tid=260})
+ --S3WallAdd({lx=100,lz=-50,rx=100,rz=0,tid=262})
 end
 
 function TIC()
@@ -46,16 +71,47 @@ end
 function StartLevel(lvlNo)
  G.lvlNo=lvlNo
  G.lvl=LVL[lvlNo]
+ local lvl=G.lvl
  S3Reset()
 
- local c0,r0=MapPageStart(G.lvl.pg)
- for r=r0,r0+
- WIP
+ for r=0,lvl.pgh-1 do
+  for c=0,lvl.pgw-1 do
+   local t=LvlTile(c,r)
+   local td=TD[t]
+   if td then AddWalls(c,r,td) end
+  end
+ end
+end
+
+-- Add the walls belonging to the given level tile.
+function AddWalls(c,r,td)
+ local s=TSIZE
+ local xw,xe=c*s,(c+1)*s -- x of east and west
+ local zn,zs=r*s,(r+1)*s -- z of north and south
+ if 0~=(td.w&TF.N) then
+  -- north wall
+  S3WallAdd({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid})
+ end
+ if 0~=(td.w&TF.S) then
+  -- south wall
+  S3WallAdd({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid})
+ end
+ if 0~=(td.w&TF.E) then
+  -- east wall
+  S3WallAdd({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid})
+ end
+ if 0~=(td.w&TF.W) then
+  -- west wall
+  S3WallAdd({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid})
+ end
 end
 
 function LvlTile(c,r)
+ if c>=G.lvl.pgw or r>=G.lvl.pgh or c<0 or r<0 then
+  return 0
+ end
  local c0,r0=MapPageStart(G.lvl.pg)
- -- TODO
+ return mget(c0+c,r0+r)
 end
 
 -- Returns col,row where the given map page starts.
