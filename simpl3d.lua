@@ -182,6 +182,9 @@ local S3={
  walls={},
  -- H-Buffer, used at render time:
  hbuf={},
+ -- Floor and ceiling colors.
+ floorC=3,
+ ceilC=7,
 }
 
 local sin,cos,PI=math.sin,math.cos,math.pi
@@ -231,6 +234,7 @@ function S3Rend()
  -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
  _S3PrepHbuf(hbuf,pvs)
  _S3RendHbuf(hbuf)
+ _S3RendFlats(hbuf)
 end
 
 function _S3ResetHbuf(hbuf)
@@ -334,6 +338,22 @@ function _S3PerspTexU(lx,lz,rx,rz,x)
  local a=_S3Interp(lx,0,rx,1,x) 
  -- perspective-correct texture mapping
  return (a/((1-a)/lz+a/rz))/rz
+end
+
+function _S3RendFlats(hbuf)
+ local scrw,scrh=SCRW,SCRH
+ local ceilC,floorC=S3.ceilC,S3.floorC
+ for x=0,scrw-1 do
+  local cby=scrh/2 -- ceiling bottom y
+  local fty=scrh/2+1 -- floor top y
+  local hb=hbuf[x+1] -- hbuf is 1-indexed
+  if hb.wall then
+   cby=min(cby,hb.ty)
+   fty=max(fty,hb.by)
+  end
+  line(x,0,x,cby-1,S3.ceilC)
+  line(x,fty,x,scrh-1,S3.floorC)
+ end
 end
 
 function S3Round(x) return floor(x+0.5) end
