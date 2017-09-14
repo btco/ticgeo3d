@@ -7,6 +7,12 @@ local G={
  lvl=nil,  -- reference to LVL[lvlNo]
 }
 
+-- sprite numbers
+local S={
+ FLAG=240,
+ META_0=241,
+}
+
 -- tile flags
 local TF={
  -- walls in the tile
@@ -118,6 +124,31 @@ end
 -- Returns col,row where the given map page starts.
 function MapPageStart(pg)
  return (pg%8)*30,(pg//8)*16
+end
+
+-- Gets the meta "value" of the given tile, or nil
+-- if it has none.
+function MetaValue(t)
+ if t>=S.META_0 and t<=S.META_0+9 then
+  return t-S.META_0
+ end
+end
+
+-- Gets the meta value of a meta tile that's adjacent
+-- to the given tile, nil if not found. This is called
+-- the tile "label".
+function TileLabel(tc,tr)
+ for c=tc-1,tc+1 do
+  for r=tr-1,tr+1 do
+   local mv=MetaValue(LvlTile(c,r))
+   if mv then return mv end
+  end
+ end
+ return nil
+end
+
+function Assert(c,msg)
+ if not c then error(msg) end
 end
 
 ---------------------------------------------------
@@ -331,7 +362,6 @@ function _S3TexSamp(tid,u,v)
  ty=ty%8
  return peek4(0x8000+spid*64+ty*8+tx)
 end
-
 
 --------------------------------------------------
 Boot()
