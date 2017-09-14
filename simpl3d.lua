@@ -58,6 +58,7 @@ function Boot()
 end
 
 function TIC()
+ local stime=time()
  cls(2)
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
@@ -72,6 +73,7 @@ function TIC()
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
+ print(S3Round(1000/(time()-stime)).."fps")
 end
 
 function StartLevel(lvlNo)
