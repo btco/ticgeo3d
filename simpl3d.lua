@@ -2,7 +2,7 @@
 local TSIZE=50
 
 local G={
- ex=0, ey=25, ez=100, yaw=0,
+ ex=0, ey=25, ez=100, yaw=180,
  lvlNo=0,
  lvl=nil,  -- reference to LVL[lvlNo]
 }
@@ -19,21 +19,21 @@ local TF={
 -- tile descriptors
 -- w: which walls this tile contains
 local TD={
- [1]={w=TF.S|TF.E,tid=1},
- [2]={w=TF.S,tid=1},
- [3]={w=TF.S|TF.W,tid=1},
- [17]={w=TF.E,tid=1},
- [19]={w=TF.W,tid=1},
- [33]={w=TF.N|TF.E,tid=1},
- [34]={w=TF.N,tid=1},
- [35]={w=TF.N|TF.W,tid=1},
+ [1]={w=TF.S|TF.E,tid=258},
+ [2]={w=TF.S,tid=258},
+ [3]={w=TF.S|TF.W,tid=258},
+ [17]={w=TF.E,tid=258},
+ [19]={w=TF.W,tid=258},
+ [33]={w=TF.N|TF.E,tid=258},
+ [34]={w=TF.N,tid=258},
+ [35]={w=TF.N|TF.W,tid=258},
 }
 
 local LVL={
  -- Each has:
  --   name: display name of level.
  --   pg: map page where level starts.
- --   pgw,pgh: width and height of level, in pages.
+ --   pgw,pgh: width and height of level, in pages
  {name="Level 1",pg=0,pgw=1,pgh=1},
 }
 
@@ -74,8 +74,8 @@ function StartLevel(lvlNo)
  local lvl=G.lvl
  S3Reset()
 
- for r=0,lvl.pgh-1 do
-  for c=0,lvl.pgw-1 do
+ for r=0,lvl.pgh*17-1 do
+  for c=0,lvl.pgw*30-1 do
    local t=LvlTile(c,r)
    local td=TD[t]
    if td then AddWalls(c,r,td) end
@@ -107,7 +107,8 @@ function AddWalls(c,r,td)
 end
 
 function LvlTile(c,r)
- if c>=G.lvl.pgw or r>=G.lvl.pgh or c<0 or r<0 then
+ if c>=G.lvl.pgw*30 or
+   r>=G.lvl.pgh*17 or c<0 or r<0 then
   return 0
  end
  local c0,r0=MapPageStart(G.lvl.pg)
