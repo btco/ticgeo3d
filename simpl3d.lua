@@ -25,14 +25,20 @@ local TF={
 -- tile descriptors
 -- w: which walls this tile contains
 local TD={
- [1]={w=TF.S|TF.E,tid=258},
- [2]={w=TF.S,tid=258},
- [3]={w=TF.S|TF.W,tid=258},
- [17]={w=TF.E,tid=258},
- [19]={w=TF.W,tid=258},
- [33]={w=TF.N|TF.E,tid=258},
- [34]={w=TF.N,tid=258},
- [35]={w=TF.N|TF.W,tid=258},
+ -- Stone walls
+ [1]={w=TF.S|TF.E,tid=256},
+ [2]={w=TF.S,tid=256},
+ [3]={w=TF.S|TF.W,tid=256},
+ [17]={w=TF.E,tid=256},
+ [19]={w=TF.W,tid=256},
+ [33]={w=TF.N|TF.E,tid=256},
+ [34]={w=TF.N,tid=256},
+ [35]={w=TF.N|TF.W,tid=256},
+ -- Doors
+ [5]={w=TF.S,tid=260},
+ [20]={w=TF.E,tid=260},
+ [22]={w=TF.W,tid=260},
+ [37]={w=TF.N,tid=260},
 }
 
 local LVL={
@@ -478,10 +484,10 @@ end
 function _S3TexSamp(tid,u,v)
  -- texture size in pixels
  -- TODO make this variable
- local SX=16
- local SY=16
- local tx=S3Round(u*SX)%SX
- local ty=S3Round(v*SY)%SY
+ local SX=32
+ local SY=32
+ local tx=floor(u*SX)%SX
+ local ty=floor(v*SY)%SY
  local spid=tid+(ty//8)*16+(tx//8)
  tx=tx%8
  ty=ty%8
