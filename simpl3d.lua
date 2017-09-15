@@ -169,6 +169,9 @@ local S3={
  -- min/max world Y coord of all walls
  W_BOT_Y=0,
  W_TOP_Y=50,
+ -- fog start/end dist.
+ FOG_S=100,
+ FOG_E=300,
  -- list of all walls, each with
  --
  --  lx,lz,rx,rz: x,z coords of left and right endpts
@@ -185,8 +188,23 @@ local S3={
  -- H-Buffer, used at render time:
  hbuf={},
  -- Floor and ceiling colors.
- floorC=3,
- ceilC=7,
+ floorC=11,
+ ceilC=3,
+ -- Color model, indicating which colors are shades
+ -- of the same hue.
+ clrM={
+  -- Gray ramp
+  {1,2,3,15},
+  -- Green ramp
+  {7,6,5,4},
+  -- Brown ramp
+  {8,9,10,11}
+ },
+ -- Reverse color lookup (ramp for given color)
+ -- Fields:
+ --   ramp (reference to a ramp in clrM)
+ --   i (index of the color within the ramp).
+ clrMR={}, -- computed on init
 }
 
 local sin,cos,PI=math.sin,math.cos,math.pi
@@ -196,12 +214,34 @@ local SCRW=240
 local SCRH=136
 
 function S3Init()
+ _S3InitClr()
  S3Reset()
 end
 
 function S3Reset()
  S3SetCam(0,0,0,0)
  S3.walls={}
+end
+
+function _S3InitClr()
+ -- Build reverse color model
+ for c=15,1,-1 do S3.clrMR[c]=nil end
+ for _,ramp in pairs(S3.clrM) do
+  for i=1,#ramp do
+   local thisC=ramp[i]
+   S3.clrMR[thisC]={ramp=ramp,i=i}
+  end
+ end
+end
+
+-- Modules a color by a given factor, using the
+-- color ramps in the color model.
+function _S3ClrMod(c,f)
+ if f==1 then return c end
+ local mr=S3.clrMR[c]
+ if not mr then return c end
+ local int=S3Round(mr.i*f)
+ return int<=0 and 0 or mr.ramp[min(int,#mr.ramp)]
 end
 
 function S3WallAdd(w)
@@ -313,8 +353,9 @@ function _S3RendHbuf(hbuf)
   local hb=hbuf[x+1]  -- hbuf is 1-indexed
   local w=hb.wall
   if w then
+   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
    local u=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
-   _S3RendTexCol(w.tid,x,hb.ty,hb.by,u)
+   _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z)
   end
  end
 end
@@ -325,14 +366,23 @@ end
 --   x: x coordinate
 --   ty,by: top and bottom y coordinate.
 --   u: horizontal texture coordinate (0 to 1)
-function _S3RendTexCol(tid,x,ty,by,u)
- line(x,ty,x,by,tid)
+--   z: depth.
+function _S3RendTexCol(tid,x,ty,by,u,z)
+ local FOG_S,FOG_E=S3.FOG_S,S3.FOG_E
+ local fogf=z<=FOG_S and 1 or (FOG_E-z)/(FOG_E-FOG_S)
  local aty,aby=max(ty,0),min(by,SCRH-1)
+ if z>FOG_E then
+  -- Shortcut: just a black line.
+  line(x,aty,x,aby,0)
+  return
+ end
  for y=aty,aby do
   -- affine texture mapping for the v coord is ok,
   -- since walls are never slanted.
   local v=_S3Interp(ty,0,by,1,y)
-  pix(x,y,_S3TexSamp(tid,u,v))
+  local clr=_S3TexSamp(tid,u,v)
+  clr=_S3ClrMod(clr,fogf)
+  pix(x,y,clr)
  end
 end
 
@@ -340,6 +390,15 @@ function _S3PerspTexU(lx,lz,rx,rz,x)
  local a=_S3Interp(lx,0,rx,1,x) 
  -- perspective-correct texture mapping
  return (a/((1-a)/lz+a/rz))/rz
+end
+
+-- Returns the factor by which to module the color
+-- of the floor or ceiling when drawing at that
+-- screen Y coordinate.
+function _S3FlatFact(y)
+ if y>SCRH/2 then y=SCRH-y end  -- symmetric
+ if y>45 then return 0.2 end
+ return 0.6
 end
 
 function _S3RendFlats(hbuf)
@@ -353,8 +412,14 @@ function _S3RendFlats(hbuf)
    cby=min(cby,hb.ty)
    fty=max(fty,hb.by)
   end
-  line(x,0,x,cby-1,S3.ceilC)
-  line(x,fty,x,scrh-1,S3.floorC)
+  for y=0,cby-1 do
+   pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(y)))
+  end
+  for y=fty,scrh-1 do
+   pix(x,y,_S3ClrMod(floorC,_S3FlatFact(y)))
+  end
+  --line(x,0,x,cby-1,S3.ceilC)
+  --line(x,fty,x,scrh-1,S3.floorC)
  end
 end
 
