@@ -192,7 +192,7 @@ local S3={
  hbuf={},
  -- Floor and ceiling colors.
  floorC=9,
- ceilC=1,
+ ceilC=0,
  -- Color model, indicating which colors are shades
  -- of the same hue.
  clrM={
@@ -431,7 +431,8 @@ end
 -- of the floor or ceiling when drawing at those
 -- screen coordinates.
 function _S3FlatFact(x,y)
- local z=2944.57/(68-y)  -- manually calculated
+ --local z=2944.57/(68-y)  -- manually calculated
+ local z=5000/(68-y)  -- manually calculated
  return _S3FogFact(x,z)
 end
 
@@ -446,14 +447,14 @@ function _S3RendFlats(hbuf)
    cby=min(cby,hb.ty)
    fty=max(fty,hb.by)
   end
-  for y=0,cby-1 do
-   pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(x,y),x,y))
-  end
+  --for y=0,cby-1 do
+  -- pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(x,y),x,y))
+  --end
+  line(x,0,x,cby-1,ceilC) -- ceiling is flat shaded
+
   for y=fty,scrh-1 do
    pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
   end
-  --line(x,0,x,cby-1,S3.ceilC)
-  --line(x,fty,x,scrh-1,S3.floorC)
  end
 end
 
