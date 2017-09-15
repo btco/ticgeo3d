@@ -169,9 +169,12 @@ local S3={
  -- min/max world Y coord of all walls
  W_BOT_Y=0,
  W_TOP_Y=50,
- -- fog start/end dist.
- FOG_S=100,
- FOG_E=300,
+ -- fog start and end dists (squared)
+ FOG_S=20000,
+ FOG_E=80000,
+ -- light flicker amount (as dist squared)
+ FLIC_AMP=1500,
+ FLIC_FM=0.003,  -- frequency multiplier
  -- list of all walls, each with
  --
  --  lx,lz,rx,rz: x,z coords of left and right endpts
@@ -188,8 +191,8 @@ local S3={
  -- H-Buffer, used at render time:
  hbuf={},
  -- Floor and ceiling colors.
- floorC=11,
- ceilC=3,
+ floorC=9,
+ ceilC=1,
  -- Color model, indicating which colors are shades
  -- of the same hue.
  clrM={
@@ -236,12 +239,29 @@ end
 
 -- Modules a color by a given factor, using the
 -- color ramps in the color model.
-function _S3ClrMod(c,f)
+-- If sx,sy are provided, we will dither using
+-- that screen position as reference.
+function _S3ClrMod(c,f,x,y)
  if f==1 then return c end
  local mr=S3.clrMR[c]
  if not mr then return c end
- local int=S3Round(mr.i*f)
- return int<=0 and 0 or mr.ramp[min(int,#mr.ramp)]
+ local di=mr.i*f -- desired intensity
+ local int
+ if x then
+  -- Dither.
+  local loi=floor(di)
+  local hii=ceil(di)
+  local fac=di-loi
+  local ent=(x+y)%3
+  int=fac>0.9 and hii or
+   ((fac>0.5 and ent~=1) and hii or
+   ((fac>0.1 and ent==1) and hii or loi))
+ else
+  -- No dither, just round.
+  int=S3Round(di)
+ end
+ return int<=0 and 0 or
+   mr.ramp[S3Clamp(int,1,#mr.ramp)]
 end
 
 function S3WallAdd(w)
@@ -360,6 +380,21 @@ function _S3RendHbuf(hbuf)
  end
 end
 
+-- Returns the fog factor (0=completely fogged/dark,
+-- 1=completely lit) for a point at screen pos
+-- sx and screen-space depth sz.
+function _S3FogFact(sx,sz)
+ local FOG_S,FOG_E=S3.FOG_S,S3.FOG_E
+ sx=120-sx
+ local d2=sx*sx+sz*sz
+ if S3.FLIC_AMP>0 then
+  local f=sin(time()*S3.FLIC_FM)*S3.FLIC_AMP
+  d2=d2+f
+ end
+ return d2<FOG_S and 1 or
+   _S3Interp(FOG_S,1,FOG_E,0,d2)
+end
+
 -- Renders a vertical column of a texture to
 -- the screen given:
 --   tid: texture ID
@@ -368,20 +403,20 @@ end
 --   u: horizontal texture coordinate (0 to 1)
 --   z: depth.
 function _S3RendTexCol(tid,x,ty,by,u,z)
- local FOG_S,FOG_E=S3.FOG_S,S3.FOG_E
- local fogf=z<=FOG_S and 1 or (FOG_E-z)/(FOG_E-FOG_S)
+ local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,0),min(by,SCRH-1)
- if z>FOG_E then
+ if fogf<=0 then
   -- Shortcut: just a black line.
   line(x,aty,x,aby,0)
   return
  end
+
  for y=aty,aby do
   -- affine texture mapping for the v coord is ok,
   -- since walls are never slanted.
   local v=_S3Interp(ty,0,by,1,y)
   local clr=_S3TexSamp(tid,u,v)
-  clr=_S3ClrMod(clr,fogf)
+  clr=_S3ClrMod(clr,fogf,x,y)
   pix(x,y,clr)
  end
 end
@@ -393,12 +428,11 @@ function _S3PerspTexU(lx,lz,rx,rz,x)
 end
 
 -- Returns the factor by which to module the color
--- of the floor or ceiling when drawing at that
--- screen Y coordinate.
-function _S3FlatFact(y)
- if y>SCRH/2 then y=SCRH-y end  -- symmetric
- if y>45 then return 0.2 end
- return 0.6
+-- of the floor or ceiling when drawing at those
+-- screen coordinates.
+function _S3FlatFact(x,y)
+ local z=2944.57/(68-y)  -- manually calculated
+ return _S3FogFact(x,z)
 end
 
 function _S3RendFlats(hbuf)
@@ -413,10 +447,10 @@ function _S3RendFlats(hbuf)
    fty=max(fty,hb.by)
   end
   for y=0,cby-1 do
-   pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(y)))
+   pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(x,y),x,y))
   end
   for y=fty,scrh-1 do
-   pix(x,y,_S3ClrMod(floorC,_S3FlatFact(y)))
+   pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
   end
   --line(x,0,x,cby-1,S3.ceilC)
   --line(x,fty,x,scrh-1,S3.floorC)
@@ -424,6 +458,9 @@ function _S3RendFlats(hbuf)
 end
 
 function S3Round(x) return floor(x+0.5) end
+function S3Clamp(x,lo,hi)
+ return x<lo and lo or (x>hi and hi or x)
+end
 
 function _S3Interp(x1,y1,x2,y2,x)
  if x2<x1 then
