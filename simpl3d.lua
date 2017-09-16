@@ -2,8 +2,9 @@
 local TSIZE=50
 
 local G={
+ -- eye position and yaw
  ex=0, ey=25, ez=100, yaw=180,
- lvlNo=0,
+ lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
 }
 
@@ -16,10 +17,7 @@ local S={
 -- tile flags
 local TF={
  -- walls in the tile
- N=1,
- E=2,
- S=4,
- W=8,
+ N=1,E=2,S=4,W=8,
 }
 
 -- tile descriptors
@@ -52,15 +50,6 @@ local LVL={
 function Boot()
  S3Init()
  StartLevel(1)
- --S3WallAdd({lx=0,lz=0,rx=50,rz=0,tid=256})
- --S3WallAdd({lx=50,lz=0,rx=50,rz=-50,tid=258})
- --S3WallAdd({lx=50,lz=-50,rx=0,rz=-50,tid=260})
- --S3WallAdd({lx=0,lz=-50,rx=0,rz=0,tid=262})
-
- --S3WallAdd({lx=100,lz=0,rx=150,rz=0,tid=256})
- --S3WallAdd({lx=150,lz=0,rx=150,rz=-50,tid=258})
- --S3WallAdd({lx=150,lz=-50,rx=100,rz=-50,tid=260})
- --S3WallAdd({lx=100,lz=-50,rx=100,rz=0,tid=262})
 end
 
 function TIC()
@@ -155,9 +144,6 @@ function TileLabel(tc,tr)
  return nil
 end
 
-function Assert(c,msg)
- if not c then error(msg) end
-end
 
 ---------------------------------------------------
 -- S3 "Simple 3D" library
@@ -214,6 +200,11 @@ local S3={
  --   ramp (reference to a ramp in clrM)
  --   i (index of the color within the ramp).
  clrMR={}, -- computed on init
+ -- Potentially visible set of walls for each
+ -- tile that the player can be on. This is indexed
+ -- by r*10000+c and gives an array of walls
+ -- potentially visible from that position.
+ pvstab={},
 }
 
 local sin,cos,PI=math.sin,math.cos,math.pi
@@ -230,6 +221,7 @@ end
 function S3Reset()
  S3SetCam(0,0,0,0)
  S3.walls={}
+ S3.pvstab={}
 end
 
 function _S3InitClr()
@@ -271,8 +263,47 @@ function _S3ClrMod(c,f,x,y)
 end
 
 function S3WallAdd(w)
- table.insert(S3.walls,{lx=w.lx,lz=w.lz,rx=w.rx,
-   rz=w.rz,tid=w.tid})
+ w={lx=w.lx,lz=w.lz,rx=w.rx,rz=w.rz,tid=w.tid}
+ table.insert(S3.walls,w)
+ _S3WallReg(w.lx,w.lz,w)
+ _S3WallReg(w.rx,w.rz,w)
+end
+
+-- Register an endpoint of a wall in the PVS table.
+function _S3WallReg(x,z,w)
+ -- Add the wall to all PVSs in a certain radius.
+ local RADIUS=6
+ local RADIUS2=RADIUS*RADIUS
+ x,z=S3Round(x),S3Round(z)
+ local centerC,centerR=x//TSIZE,z//TSIZE
+ for r=centerR-RADIUS,centerR+RADIUS do
+  for c=centerC-RADIUS,centerC+RADIUS do
+   local dist2=(c-centerC)*(c-centerC)+
+     (r-centerR)*(r-centerR)
+   if dist2<=RADIUS2 then
+    _S3PvsAdd(c,r,w)
+   end
+  end
+ end
+ 
+end
+
+function _S3PvsAdd(c,r,w)
+ local t=S3.pvstab[r*32768+c]
+ if not t then
+  t={}
+  S3.pvstab[r*32768+c]=t
+ end
+ table.insert(t,w)
+end
+
+-- Returns the PVS for the given coordinates,
+-- or an empty set if there is none.
+local _S3PvsGet_empty={}
+function _S3PvsGet(x,z)
+ x,z=S3Round(x),S3Round(z)
+ local c,r=x//TSIZE,z//TSIZE
+ return S3.pvstab[r*32768+c] or _S3PvsGet_empty;
 end
 
 function S3SetCam(ex,ey,ez,yaw)
@@ -296,8 +327,7 @@ function S3Proj(x,y,z)
 end
 
 function S3Rend()
- -- TODO: compute potentially visible set instead.
- local pvs=S3.walls
+ local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
  -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
  _S3PrepHbuf(hbuf,pvs)
@@ -453,11 +483,7 @@ function _S3RendFlats(hbuf)
    cby=min(cby,hb.ty)
    fty=max(fty,hb.by)
   end
-  --for y=0,cby-1 do
-  -- pix(x,y,_S3ClrMod(ceilC,_S3FlatFact(x,y),x,y))
-  --end
-  line(x,0,x,cby-1,ceilC) -- ceiling is flat shaded
-
+  line(x,0,x,cby,ceilC) -- ceiling is flat shaded
   for y=fty,scrh-1 do
    pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
   end
