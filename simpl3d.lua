@@ -84,6 +84,12 @@ function TIC()
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
+
+ -- DEBUG
+ --S3RendFloat(
+ --  350,0,200,0,0,
+ --  400,50,200,1,1,264)
+
  print(S3Round(1000/(time()-stime)).."fps")
 end
 
@@ -482,10 +488,12 @@ function S3RendFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
  w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
  if not _S3ProjWall(w,ly,ry) then return end
  for x=w.slx,w.srx do
+  local ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
+  local by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
   local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
   local u=_S3Interp(0,lu,1,ru,baseu)
-  _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z,lv,rv)
+  _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0)
  end
 end
 
@@ -513,7 +521,8 @@ end
 --   z: depth.
 --   v0: bottom V coordinate (default 0)
 --   v1: top V coordinate (default 1)
-function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1)
+--   ck: color key (default -1)
+function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck)
  local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,0),min(by,SCRH-1)
  if fogf<=0 then
@@ -521,15 +530,17 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1)
   line(x,aty,x,aby,0)
   return
  end
- v0,v1=v0 or 0,v1 or 1
+ v0,v1,ck=v0 or 0,v1 or 1,ck or -1
 
  for y=aty,aby do
   -- affine texture mapping for the v coord is ok,
   -- since walls are never slanted.
   local v=_S3Interp(ty,v0,by,v1,y)
   local clr=_S3TexSamp(tid,u,v)
-  clr=_S3ClrMod(clr,fogf,x,y)
-  pix(x,y,clr)
+  if clr~=ck then
+   clr=_S3ClrMod(clr,fogf,x,y)
+   pix(x,y,clr)
+  end
  end
 end
 
