@@ -16,6 +16,7 @@ local G={
  ex=250, ey=25, ez=250, yaw=180,
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
+ lftime=-1,  -- last frame time
 }
 
 -- sprite numbers
@@ -66,29 +67,33 @@ end
 
 function TIC()
  local stime=time()
+ local dt=G.lftime and (stime-G.lftime) or 16
+ G.lftime=stime
+ dt=dt*.001 -- convert to seconds
+ 
  cls(2)
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
 
  local vx=-sin(G.yaw)*fwd
  local vz=-cos(G.yaw)*fwd
- MovePlr(2,vx,vz)
+ MovePlr(70*dt,vx,vz)
 
  if btn(4) then
   -- strafe
   vx=-math.sin(G.yaw-1.5708)*right
   vz=-math.cos(G.yaw-1.5708)*right
-  MovePlr(2,vx,vz)
+  MovePlr(70*dt,vx,vz)
  else
-  G.yaw=G.yaw-right*0.03
+  G.yaw=G.yaw-right*0.8*dt
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
 
  -- DEBUG
- --S3RendFloat(
- --  350,0,200,0,0,
- --  400,50,200,1,1,264)
+ S3RendFloat(
+   350,0,200,0,0,
+   400,50,200,1,1,264)
 
  print(S3Round(1000/(time()-stime)).."fps")
 end
