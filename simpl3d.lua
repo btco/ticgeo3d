@@ -1,9 +1,19 @@
+-- Constants and aliases:
+local sin,cos,PI=math.sin,math.cos,math.pi
+local floor,ceil=math.floor,math.ceil
+local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
+local SCRW=240
+local SCRH=136
+
 -- Tile size in world coords
 local TSIZE=50
 
+-- Player's collision rect size
+local PLR_CS=18
+
 local G={
  -- eye position and yaw
- ex=0, ey=25, ez=100, yaw=180,
+ ex=250, ey=25, ez=250, yaw=180,
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
 }
@@ -18,6 +28,8 @@ local S={
 local TF={
  -- walls in the tile
  N=1,E=2,S=4,W=8,
+ -- tile is non-solid.
+ NSLD=0x10,
 }
 
 -- tile descriptors
@@ -57,12 +69,16 @@ function TIC()
  cls(2)
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
- G.ex=G.ex-math.sin(G.yaw)*fwd*2.0
- G.ez=G.ez-math.cos(G.yaw)*fwd*2.0
+
+ local vx=-sin(G.yaw)*fwd
+ local vz=-cos(G.yaw)*fwd
+ MovePlr(2,vx,vz)
+
  if btn(4) then
   -- strafe
-  G.ex=G.ex-math.sin(G.yaw-1.5708)*right*2.0
-  G.ez=G.ez-math.cos(G.yaw-1.5708)*right*2.0
+  vx=-math.sin(G.yaw-1.5708)*right
+  vz=-math.cos(G.yaw-1.5708)*right
+  MovePlr(2,vx,vz)
  else
   G.yaw=G.yaw-right*0.03
  end
@@ -144,6 +160,51 @@ function TileLabel(tc,tr)
  return nil
 end
 
+-- Moves player, taking care not to collide with
+-- solid tiles.
+-- d: the total distance to move the player
+-- vx,vz: the direction (normalized) in which to move
+-- the player.
+function MovePlr(d,vx,vz)
+ local STEP=1
+ local ex,ez=G.ex,G.ez
+ while d>0 do
+  local l=min(d,STEP)  -- how much to move this step
+  d=d-STEP
+  -- Candidate positions (a, b and c):
+  local ax,az=ex+l*vx,ez+l*vz -- full motion
+  local bx,bz=ex,ez+l*vz  -- move only in Z direction
+  local cx,cz=ex+l*vx,ez  -- move only in X direction
+  if IsPosValid(ax,az) then ex,ez=ax,az
+  elseif IsPosValid(bx,bz) then ex,ez=bx,bz
+  elseif IsPosValid(cx,cz) then ex,ez=cx,cz
+  else break end  -- motion completely blocked
+ end
+ G.ex,G.ez=ex,ez
+end
+
+-- Returns if the given position is valid as a 
+-- player position (that is, doesn't collide with
+-- any solid tiles).
+function IsPosValid(x,z)
+ local cs=PLR_CS
+ -- Test four corners of player's collision rect.
+ return not IsInSolidTile(x-cs,z-cs) and
+   not IsInSolidTile(x-cs,z+cs) and
+   not IsInSolidTile(x+cs,z-cs) and
+   not IsInSolidTile(x+cs,z+cs)
+end
+
+-- Returns whether the given position lies within
+-- a solid tile.
+function IsInSolidTile(x,z)
+ local c,r=floor(x/TSIZE),floor(z/TSIZE)
+ local t=LvlTile(c,r)
+ local td=TD[t]
+ if not td then return false end
+ return 0==td.w&TF.NSLD
+end
+
 
 ---------------------------------------------------
 -- S3 "Simple 3D" library
@@ -206,12 +267,6 @@ local S3={
  -- potentially visible from that position.
  pvstab={},
 }
-
-local sin,cos,PI=math.sin,math.cos,math.pi
-local floor,ceil=math.floor,math.ceil
-local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
-local SCRW=240
-local SCRH=136
 
 function S3Init()
  _S3InitClr()
