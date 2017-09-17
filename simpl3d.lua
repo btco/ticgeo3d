@@ -36,19 +36,19 @@ local TF={
 -- w: which walls this tile contains
 local TD={
  -- Stone walls
- [1]={w=TF.S|TF.E,tid=256},
- [2]={w=TF.S,tid=256},
- [3]={w=TF.S|TF.W,tid=256},
- [17]={w=TF.E,tid=256},
- [19]={w=TF.W,tid=256},
- [33]={w=TF.N|TF.E,tid=256},
- [34]={w=TF.N,tid=256},
- [35]={w=TF.N|TF.W,tid=256},
+ [1]={f=TF.S|TF.E,tid=256},
+ [2]={f=TF.S,tid=256},
+ [3]={f=TF.S|TF.W,tid=256},
+ [17]={f=TF.E,tid=256},
+ [19]={f=TF.W,tid=256},
+ [33]={f=TF.N|TF.E,tid=256},
+ [34]={f=TF.N,tid=256},
+ [35]={f=TF.N|TF.W,tid=256},
  -- Doors
- [5]={w=TF.S,tid=260},
- [20]={w=TF.E,tid=260},
- [22]={w=TF.W,tid=260},
- [37]={w=TF.N,tid=260},
+ [5]={f=TF.S,tid=260},
+ [20]={f=TF.E,tid=260},
+ [22]={f=TF.W,tid=260},
+ [37]={f=TF.N,tid=260},
 }
 
 local LVL={
@@ -107,19 +107,19 @@ function AddWalls(c,r,td)
  local s=TSIZE
  local xw,xe=c*s,(c+1)*s -- x of east and west
  local zn,zs=r*s,(r+1)*s -- z of north and south
- if 0~=(td.w&TF.N) then
+ if 0~=(td.f&TF.N) then
   -- north wall
   S3WallAdd({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid})
  end
- if 0~=(td.w&TF.S) then
+ if 0~=(td.f&TF.S) then
   -- south wall
   S3WallAdd({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid})
  end
- if 0~=(td.w&TF.E) then
+ if 0~=(td.f&TF.E) then
   -- east wall
   S3WallAdd({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid})
  end
- if 0~=(td.w&TF.W) then
+ if 0~=(td.f&TF.W) then
   -- west wall
   S3WallAdd({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid})
  end
@@ -202,7 +202,7 @@ function IsInSolidTile(x,z)
  local t=LvlTile(c,r)
  local td=TD[t]
  if not td then return false end
- return 0==td.w&TF.NSLD
+ return 0==td.f&TF.NSLD
 end
 
 
@@ -402,9 +402,9 @@ function _S3ResetHbuf(hbuf)
 end
 
 -- Compute screen-space coords for wall.
-function _S3ProjWall(w)
- local topy=S3.W_TOP_Y
- local boty=S3.W_BOT_Y
+function _S3ProjWall(w,boty,topy)
+ topy=topy or S3.W_TOP_Y
+ boty=boty or S3.W_BOT_Y
 
  -- notation: lt=left top, rt=right top, etc.
  local ltx,lty,ltz=S3Proj(w.lx,topy,w.lz)
@@ -471,6 +471,24 @@ function _S3RendHbuf(hbuf)
  end
 end
 
+-- Render a "floating quad", without any depth
+-- testing, but with transparency.
+-- These are all given in world coordinates:
+-- lx,ly,lz,lu,lv: pos and tex coords of left bottom
+-- rx,ry,rz,ru,rv: pos and tex coords of right top
+local S3RendFloat_tmp={}
+function S3RendFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
+ local w=S3RendFloat_tmp
+ w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
+ if not _S3ProjWall(w,ly,ry) then return end
+ for x=w.slx,w.srx do
+  local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
+  local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
+  local u=_S3Interp(0,lu,1,ru,baseu)
+  _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z,lv,rv)
+ end
+end
+
 -- Returns the fog factor (0=completely fogged/dark,
 -- 1=completely lit) for a point at screen pos
 -- sx and screen-space depth sz.
@@ -493,7 +511,9 @@ end
 --   ty,by: top and bottom y coordinate.
 --   u: horizontal texture coordinate (0 to 1)
 --   z: depth.
-function _S3RendTexCol(tid,x,ty,by,u,z)
+--   v0: bottom V coordinate (default 0)
+--   v1: top V coordinate (default 1)
+function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1)
  local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,0),min(by,SCRH-1)
  if fogf<=0 then
@@ -501,11 +521,12 @@ function _S3RendTexCol(tid,x,ty,by,u,z)
   line(x,aty,x,aby,0)
   return
  end
+ v0,v1=v0 or 0,v1 or 1
 
  for y=aty,aby do
   -- affine texture mapping for the v coord is ok,
   -- since walls are never slanted.
-  local v=_S3Interp(ty,0,by,1,y)
+  local v=_S3Interp(ty,v0,by,v1,y)
   local clr=_S3TexSamp(tid,u,v)
   clr=_S3ClrMod(clr,fogf,x,y)
   pix(x,y,clr)
