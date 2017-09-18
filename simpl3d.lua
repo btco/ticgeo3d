@@ -1,6 +1,6 @@
 -- Constants and aliases:
 local sin,cos,PI=math.sin,math.cos,math.pi
-local floor,ceil=math.floor,math.ceil
+local floor,ceil,sqrt=math.floor,math.ceil,math.sqrt
 local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
 local SCRW=240
 local SCRH=136
@@ -175,10 +175,14 @@ function DoorAnimUpdate(dt)
 end
 
 function TryOpenDoor()
- local c0,r0=S3Round(G.ex/TSIZE),S3Round(G.ez/TSIZE)
+ local c0,r0=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
+ local pfwdx,pfwdz=-sin(G.yaw),-cos(G.yaw)
  for c=c0-2,c0+2 do
   for r=r0-2,r0+2 do
-   if DoorOpen(c,r) then return end
+   local dx,dz=S3Normalize(c*TSIZE-G.ex,r*TSIZE-G.ez)
+   if S3Dot(dx,dz,pfwdx,pfwdz)>0.8 then
+    if DoorOpen(c,r) then return end
+   end
   end
  end
 end
@@ -762,6 +766,19 @@ function _S3TexSamp(tid,u,v)
  tx=tx%8
  ty=ty%8
  return peek4(0x8000+spid*64+ty*8+tx)
+end
+
+function S3Dot(ax,az,bx,bz)
+ return ax*bx+az*bz
+end
+
+function S3Norm(x,z)
+ return sqrt(x*x+z*z)
+end
+
+function S3Normalize(x,z)
+ local l=S3Norm(x,z)
+ return x/l,z/l
 end
 
 --------------------------------------------------
