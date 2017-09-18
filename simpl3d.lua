@@ -91,12 +91,13 @@ function TIC()
   G.yaw=G.yaw-right*G.PASPD*dt
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
- S3Rend()
 
- -- DEBUG
- S3RendFloat(
+  -- DEBUG
+ S3RendStFloat(
    350,0,200,0,0,
    400,50,200,1,1,264)
+
+ S3Rend()
 
  print(S3Round(1000/(time()-stime)).."fps")
 end
@@ -284,11 +285,19 @@ local S3={
  -- by r*10000+c and gives an array of walls
  -- potentially visible from that position.
  pvstab={},
+ -- stencil buf, addressed as y*240+x. To avoid
+ -- having to clear this buf, the value is the # of
+ -- the frame when the value was written; any values
+ -- below that are ignored.
+ stencil={},
 }
 
 function S3Init()
  _S3InitClr()
  S3Reset()
+ for i=0,240*136 do
+  S3.stencil[i]=-1
+ end
 end
 
 function S3Reset()
@@ -400,13 +409,13 @@ function S3Proj(x,y,z)
 end
 
 function S3Rend()
- S3.t=S3.t+1
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
  -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
  _S3PrepHbuf(hbuf,pvs)
  _S3RendHbuf(hbuf)
  _S3RendFlats(hbuf)
+ S3.t=S3.t+1
 end
 
 function _S3ResetHbuf(hbuf)
@@ -508,12 +517,13 @@ function _S3RendHbuf(hbuf)
 end
 
 -- Render a "floating quad", without any depth
--- testing, but with transparency.
+-- testing, but with transparency. Writes to
+-- the stencil buffer.
 -- These are all given in world coordinates:
 -- lx,ly,lz,lu,lv: pos and tex coords of left bottom
 -- rx,ry,rz,ru,rv: pos and tex coords of right top
 local S3RendFloat_tmp={}
-function S3RendFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
+function S3RendStFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
  local w=S3RendFloat_tmp
  w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
  if not _S3ProjWall(w,ly,ry) then return end
@@ -525,7 +535,7 @@ function S3RendFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
   local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
   local u=_S3Interp(0,lu,1,ru,baseu)
-  _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0)
+  _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0,true)
  end
 end
 
@@ -554,7 +564,11 @@ end
 --   v0: bottom V coordinate (default 0)
 --   v1: top V coordinate (default 1)
 --   ck: color key (default -1)
-function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck)
+--   wsten: if true, write to stencil buf (default
+--    is false)
+function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
+ ty=S3Round(ty)
+ by=S3Round(by)
  local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,0),min(by,SCRH-1)
  if fogf<=0 then
@@ -563,15 +577,20 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck)
   return
  end
  v0,v1,ck=v0 or 0,v1 or 1,ck or -1
-
+ local stbuf=S3.stencil
+ local stval=S3.t
  for y=aty,aby do
-  -- affine texture mapping for the v coord is ok,
-  -- since walls are never slanted.
-  local v=_S3Interp(ty,v0,by,v1,y)
-  local clr=_S3TexSamp(tid,u,v)
-  if clr~=ck then
-   clr=_S3ClrMod(clr,fogf,x,y)
-   pix(x,y,clr)
+  local stidx=y*240+x
+  if stbuf[stidx]~=stval then
+   -- affine texture mapping for the v coord is ok,
+   -- since walls are never slanted.
+   local v=_S3Interp(ty,v0,by,v1,y)
+   local clr=_S3TexSamp(tid,u,v)
+   if clr~=ck then
+    clr=_S3ClrMod(clr,fogf,x,y)
+    pix(x,y,clr)
+    if wsten then stbuf[stidx]=stval end
+   end
   end
  end
 end
