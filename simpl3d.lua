@@ -152,7 +152,6 @@ function DoorDel(c,r) G.doors[r*240+c]=nil end
 
 -- Opens the door at the given coordinates.
 function DoorOpen(c,r)
- trace("DoorOpen "..c..", "..r)
  local w=DoorAt(c,r)
  if not w then return false end
  -- Start door open animation.
@@ -168,7 +167,7 @@ function DoorAnimUpdate(dt)
  anim.phi=anim.phi+dt*1.5
  local phi=min(anim.phi,1.5)
  anim.w.rx,anim.w.rz=RotPoint(
-  anim.w.lx,anim.w.lz,anim.irx,anim.irz,phi)
+  anim.w.lx,anim.w.lz,anim.irx,anim.irz,-phi)
  if anim.phi>1.5 then
   G.doorAnim=nil
   return
@@ -307,7 +306,7 @@ end
 function RotPoint(ox,oz,px,pz,alpha)
  local ux,uz=px-ox,pz-oz
  local c,s=cos(alpha),sin(alpha)
- return ox+ux*c-uz*s,oz+uz*c-ux*s
+ return ox+ux*c-uz*s,oz+uz*c+ux*s
 end
 
 ---------------------------------------------------
