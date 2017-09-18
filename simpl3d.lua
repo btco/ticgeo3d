@@ -17,6 +17,9 @@ local G={
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
+
+ -- Player speed (linear and angular)
+ PSPD=120,PASPD=1.2,
 }
 
 -- sprite numbers
@@ -68,24 +71,24 @@ end
 function TIC()
  local stime=time()
  local dt=G.lftime and (stime-G.lftime) or 16
+ local PSPD=G.PSPD
  G.lftime=stime
  dt=dt*.001 -- convert to seconds
  
- cls(2)
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
 
  local vx=-sin(G.yaw)*fwd
  local vz=-cos(G.yaw)*fwd
- MovePlr(70*dt,vx,vz)
+ MovePlr(PSPD*dt,vx,vz)
 
  if btn(4) then
   -- strafe
   vx=-math.sin(G.yaw-1.5708)*right
   vz=-math.cos(G.yaw-1.5708)*right
-  MovePlr(70*dt,vx,vz)
+  MovePlr(PSPD*dt,vx,vz)
  else
-  G.yaw=G.yaw-right*0.8*dt
+  G.yaw=G.yaw-right*G.PASPD*dt
  end
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
@@ -226,6 +229,10 @@ local S3={
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
  cosMy=0, sinMy=0, termA=0, termB=0,
+ -- Clock (in frames).
+ t=0,
+ -- If true, interleave frames for performance
+ ILEAVE=true,
  -- These are hard-coded into the projection function,
  -- so if you change then, also update the math.
  NCLIP=0.1,
@@ -393,6 +400,7 @@ function S3Proj(x,y,z)
 end
 
 function S3Rend()
+ S3.t=S3.t+1
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
  -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
@@ -436,6 +444,20 @@ function _S3ProjWall(w,boty,topy)
  return true
 end
 
+-- Calculates how to iterate over the HBUF in the
+-- given frame to account for possible interleaving.
+-- Returns startx,endx,step to be used for iteration.
+function _S3AdjHbufIter(startx,endx)
+ if not S3.ILEAVE then
+  return startx,endx,1
+ end
+ if startx%2~=S3.t%2 then
+  return startx+1,endx,2
+ else
+  return startx,endx,2
+ end
+end
+
 function _S3PrepHbuf(hbuf,walls)
  _S3ResetHbuf(hbuf)
  for i=1,#walls do
@@ -459,6 +481,8 @@ end
 function _AddWallToHbuf(hbuf,w)
  local startx=max(0,S3Round(w.slx))
  local endx=min(SCRW-1,S3Round(w.srx))
+ local step
+ startx,endx,step=_S3AdjHbufIter(startx,endx)
  for x=startx,endx do
   -- hbuf is 1-indexed (because Lua)
   local hbx=hbuf[x+1]
@@ -471,7 +495,8 @@ end
 
 function _S3RendHbuf(hbuf)
  local scrw=SCRW
- for x=0,scrw-1 do
+ local startx,endx,step=_S3AdjHbufIter(0,scrw-1)
+ for x=startx,endx,step do
   local hb=hbuf[x+1]  -- hbuf is 1-indexed
   local w=hb.wall
   if w then
@@ -492,7 +517,9 @@ function S3RendFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
  local w=S3RendFloat_tmp
  w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
  if not _S3ProjWall(w,ly,ry) then return end
- for x=w.slx,w.srx do
+ local startx,endx,step=_S3AdjHbufIter(
+   S3Round(w.slx),S3Round(w.srx))
+ for x=startx,endx,step do
   local ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
   local by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
@@ -567,7 +594,8 @@ end
 function _S3RendFlats(hbuf)
  local scrw,scrh=SCRW,SCRH
  local ceilC,floorC=S3.ceilC,S3.floorC
- for x=0,scrw-1 do
+ local startx,endx,step=_S3AdjHbufIter(0,scrw-1)
+ for x=startx,endx,step do
   local cby=scrh/2 -- ceiling bottom y
   local fty=scrh/2+1 -- floor top y
   local hb=hbuf[x+1] -- hbuf is 1-indexed
