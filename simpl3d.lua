@@ -18,6 +18,21 @@ local G={
  lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
 
+ -- All the doors in the level. This is a dict indexed
+ -- by r*240+c where c,r are the col/row on the map.
+ -- The value is a reference to the wall that
+ -- represents the (closed) door.
+ doors={},
+
+ -- If set, a door open animation is in progress
+ -- Fields:
+ --   w: the wall being animated.
+ --   irx,irz: initial pos of door's right side
+ --   phi: how much door has rotated so far
+ --     (this increases until it's PI/2,
+ --     then the animation ends).
+ doorAnim=nil,
+
  -- Player speed (linear and angular)
  PSPD=120,PASPD=1.2,
 }
@@ -34,6 +49,8 @@ local TF={
  N=1,E=2,S=4,W=8,
  -- tile is non-solid.
  NSLD=0x10,
+ -- tile is a door
+ DOOR=0x20,
 }
 
 -- tile descriptors
@@ -49,10 +66,10 @@ local TD={
  [34]={f=TF.N,tid=256},
  [35]={f=TF.N|TF.W,tid=256},
  -- Doors
- [5]={f=TF.S,tid=260},
- [20]={f=TF.E,tid=260},
- [22]={f=TF.W,tid=260},
- [37]={f=TF.N,tid=260},
+ [5]={f=TF.S|TF.DOOR,tid=260},
+ [20]={f=TF.E|TF.DOOR,tid=260},
+ [22]={f=TF.W|TF.DOOR,tid=260},
+ [37]={f=TF.N|TF.DOOR,tid=260},
 }
 
 local LVL={
@@ -90,12 +107,18 @@ function TIC()
  else
   G.yaw=G.yaw-right*G.PASPD*dt
  end
+
+ -- Try to open a door.
+ if btnp(5) then TryOpenDoor() end
+
+ DoorAnimUpdate(dt)
+
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
 
-  -- DEBUG
- S3RendStFloat(
-   350,0,200,0,0,
-   400,50,200,1,1,264)
+ --DEBUG
+ --S3RendStFloat(
+ --  350,0,200,0,0,
+ --  400,50,200,1,1,264)
 
  S3Rend()
 
@@ -117,36 +140,95 @@ function StartLevel(lvlNo)
  end
 end
 
+-- Add a door (wall w) at col/row.
+function DoorAdd(c,r,w) G.doors[r*240+c]=w end
+
+-- Looks for a door at the given col,row,
+-- nil if not found.
+function DoorAt(c,r) return G.doors[r*240+c] end
+
+-- Deletes a door at the given col,row.
+function DoorDel(c,r) G.doors[r*240+c]=nil end
+
+-- Opens the door at the given coordinates.
+function DoorOpen(c,r)
+ trace("DoorOpen "..c..", "..r)
+ local w=DoorAt(c,r)
+ if not w then return false end
+ -- Start door open animation.
+ G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
+ LvlTile(c,r,0)  -- becomes empty tile
+ DoorDel(c,r)
+ return true
+end
+
+function DoorAnimUpdate(dt)
+ local anim=G.doorAnim
+ if not anim then return end
+ anim.phi=anim.phi+dt*1.5
+ local phi=min(anim.phi,1.5)
+ anim.w.rx,anim.w.rz=RotPoint(
+  anim.w.lx,anim.w.lz,anim.irx,anim.irz,phi)
+ if anim.phi>1.5 then
+  G.doorAnim=nil
+  return
+ end
+end
+
+function TryOpenDoor()
+ local c0,r0=S3Round(G.ex/TSIZE),S3Round(G.ez/TSIZE)
+ for c=c0-2,c0+2 do
+  for r=r0-2,r0+2 do
+   if DoorOpen(c,r) then return end
+  end
+ end
+end
+
 -- Add the walls belonging to the given level tile.
 function AddWalls(c,r,td)
  local s=TSIZE
  local xw,xe=c*s,(c+1)*s -- x of east and west
  local zn,zs=r*s,(r+1)*s -- z of north and south
+ local isdoor=(0~=td.f&TF.DOOR)
  if 0~=(td.f&TF.N) then
   -- north wall
-  S3WallAdd({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid})
+  AddWall({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid},
+   c,r,isdoor)
  end
  if 0~=(td.f&TF.S) then
   -- south wall
-  S3WallAdd({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid})
+  AddWall({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid},
+   c,r,isdoor)
  end
  if 0~=(td.f&TF.E) then
   -- east wall
-  S3WallAdd({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid})
+  AddWall({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid},
+   c,r,isdoor)
  end
  if 0~=(td.f&TF.W) then
   -- west wall
-  S3WallAdd({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid})
+  AddWall({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid},
+   c,r,isdoor)
  end
 end
 
-function LvlTile(c,r)
+function AddWall(w,c,r,isdoor)
+ S3WallAdd(w)
+ if isdoor then DoorAdd(c,r,w) end
+end
+
+-- Returns the level tile at c,r.
+-- If newval is given, it will be set as the new
+-- value.
+function LvlTile(c,r,newval)
  if c>=G.lvl.pgw*30 or
    r>=G.lvl.pgh*17 or c<0 or r<0 then
   return 0
  end
  local c0,r0=MapPageStart(G.lvl.pg)
- return mget(c0+c,r0+r)
+ local val=mget(c0+c,r0+r)
+ if newval then mset(c0+c,r0+r,newval) end
+ return val
 end
 
 -- Returns col,row where the given map page starts.
@@ -220,6 +302,13 @@ function IsInSolidTile(x,z)
  return 0==td.f&TF.NSLD
 end
 
+-- Rotate point P=px,pz about point O=ox,oz
+-- by an angle of alpha radians.
+function RotPoint(ox,oz,px,pz,alpha)
+ local ux,uz=px-ox,pz-oz
+ local c,s=cos(alpha),sin(alpha)
+ return ox+ux*c-uz*s,oz+uz*c-ux*s
+end
 
 ---------------------------------------------------
 -- S3 "Simple 3D" library
@@ -342,12 +431,20 @@ function _S3ClrMod(c,f,x,y)
    mr.ramp[S3Clamp(int,1,#mr.ramp)]
 end
 
+-- Adds a wall. Walls must have:
+--    lx,lz,rx,rz: endpoint coordinates
+--    tid: texture ID
 function S3WallAdd(w)
- w={lx=w.lx,lz=w.lz,rx=w.rx,rz=w.rz,tid=w.tid}
+ assert(w.lx) assert(w.lz) assert(w.rx) assert(w.rz)
+ assert(w.tid)
  table.insert(S3.walls,w)
  _S3WallReg(w.lx,w.lz,w)
  _S3WallReg(w.rx,w.rz,w)
 end
+
+-- We don't actually delete walls (that would
+-- be slow). We just mark them as dead.
+function S3WallDel(w) w.dead=true end
 
 -- Register an endpoint of a wall in the PVS table.
 function _S3WallReg(x,z,w)
@@ -469,7 +566,9 @@ function _S3PrepHbuf(hbuf,walls)
  _S3ResetHbuf(hbuf)
  for i=1,#walls do
   local w=walls[i]
-  if _S3ProjWall(w) then _AddWallToHbuf(hbuf,w) end
+  if not w.dead then
+   if _S3ProjWall(w) then _AddWallToHbuf(hbuf,w) end
+  end
  end
  -- Now hbuf has info about all the walls that we have
  -- to draw, per screen X coordinate.
@@ -532,22 +631,22 @@ end
 -- These are all given in world coordinates:
 -- lx,ly,lz,lu,lv: pos and tex coords of left bottom
 -- rx,ry,rz,ru,rv: pos and tex coords of right top
-local S3RendFloat_tmp={}
-function S3RendStFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
- local w=S3RendFloat_tmp
- w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
- if not _S3ProjWall(w,ly,ry) then return end
- local startx,endx,step=_S3AdjHbufIter(
-   S3Round(w.slx),S3Round(w.srx))
- for x=startx,endx,step do
-  local ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
-  local by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
-  local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
-  local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
-  local u=_S3Interp(0,lu,1,ru,baseu)
-  _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0,true)
- end
-end
+-- local S3RendFloat_tmp={}
+-- function S3RendStFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
+--  local w=S3RendFloat_tmp
+--  w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
+--  if not _S3ProjWall(w,ly,ry) then return end
+--  local startx,endx,step=_S3AdjHbufIter(
+--    S3Round(w.slx),S3Round(w.srx))
+--  for x=startx,endx,step do
+--   local ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
+--   local by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
+--   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
+--   local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
+--   local u=_S3Interp(0,lu,1,ru,baseu)
+--   _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0,true)
+--  end
+-- end
 
 -- Returns the fog factor (0=completely fogged/dark,
 -- 1=completely lit) for a point at screen pos
