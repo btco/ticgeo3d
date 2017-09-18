@@ -285,7 +285,7 @@ local S3={
  -- by r*10000+c and gives an array of walls
  -- potentially visible from that position.
  pvstab={},
- -- stencil buf, addressed as y*240+x. To avoid
+ -- stencil buf, addressed as y*240+x+1. To avoid
  -- having to clear this buf, the value is the # of
  -- the frame when the value was written; any values
  -- below that are ignored.
@@ -295,9 +295,7 @@ local S3={
 function S3Init()
  _S3InitClr()
  S3Reset()
- for i=0,240*136 do
-  S3.stencil[i]=-1
- end
+ _S3StencilInit()
 end
 
 function S3Reset()
@@ -516,6 +514,18 @@ function _S3RendHbuf(hbuf)
  end
 end
 
+function _S3StencilInit()
+ for i=1,240*136+1 do S3.stencil[i]=-1 end
+end
+
+function _S3StencilRead(x,y)
+ return S3.stencil[240*y+x+1]==S3.t
+end
+
+function _S3StencilWrite(x,y)
+ S3.stencil[240*y+x+1]=S3.t
+end
+
 -- Render a "floating quad", without any depth
 -- testing, but with transparency. Writes to
 -- the stencil buffer.
@@ -577,11 +587,8 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
   return
  end
  v0,v1,ck=v0 or 0,v1 or 1,ck or -1
- local stbuf=S3.stencil
- local stval=S3.t
  for y=aty,aby do
-  local stidx=y*240+x
-  if stbuf[stidx]~=stval then
+  if not _S3StencilRead(x,y) then
    -- affine texture mapping for the v coord is ok,
    -- since walls are never slanted.
    local v=_S3Interp(ty,v0,by,v1,y)
@@ -589,7 +596,7 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
    if clr~=ck then
     clr=_S3ClrMod(clr,fogf,x,y)
     pix(x,y,clr)
-    if wsten then stbuf[stidx]=stval end
+    if wsten then _S3StencilWrite(x,y) end
    end
   end
  end
