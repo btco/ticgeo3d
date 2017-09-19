@@ -651,6 +651,36 @@ end
 --  end
 -- end
 
+-- Renders eye-aligned billboard. Will test against
+-- and write stencil. Clips against hbuf for depth.
+-- Billboards must be rendered from near to far,
+-- before walls.
+function _S3RendBill(cx,cy,cz,w,h,tid)
+ local scx,scy,z=_S3Proj(cx,cy,cz)
+ -- From projection formula, this is how widths and
+ -- heights project from world space to screen space:
+ -- sw=117.78 ww/z
+ -- sh=117.78 wh/z
+ -- Where ww,wh=world width,height and z is depth.
+ local sw=117.78*w/z
+ local sh=117.78*h/z
+ local lx,rx=S3Round(scx-0.5*sw),S3Round(scx+0.5*sw)
+ local ty,by=S3Round(scy-0.5*sh),S3Round(scy+0.5*sh)
+ if lx<0 and rx<0 or lx>SCRW or rx>SCRW
+   then return end
+
+ local startx,endx,step=_S3AdjHbufIter(lx,rx)
+ local hbuf=S3.hbuf
+ for x=startx,endx,step do
+  -- clip against hbuf
+  local hb=hbuf[x+1] -- 1-indexed
+  if not hb.wall or hb.z>z then
+    local u=_S3Interp(lx,0,rx,1,x)
+   _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true)
+  end
+ end
+end
+
 -- Returns the fog factor (0=completely fogged/dark,
 -- 1=completely lit) for a point at screen pos
 -- sx and screen-space depth sz.
