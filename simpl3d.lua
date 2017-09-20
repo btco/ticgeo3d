@@ -115,6 +115,7 @@ function TIC()
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
 
+ _S3RendBill(350,25,200,50,50,320)
  --DEBUG
  --S3RendStFloat(
  --  350,0,200,0,0,
@@ -656,7 +657,7 @@ end
 -- Billboards must be rendered from near to far,
 -- before walls.
 function _S3RendBill(cx,cy,cz,w,h,tid)
- local scx,scy,z=_S3Proj(cx,cy,cz)
+ local scx,scy,z=S3Proj(cx,cy,cz)
  -- From projection formula, this is how widths and
  -- heights project from world space to screen space:
  -- sw=117.78 ww/z
@@ -674,7 +675,7 @@ function _S3RendBill(cx,cy,cz,w,h,tid)
  for x=startx,endx,step do
   -- clip against hbuf
   local hb=hbuf[x+1] -- 1-indexed
-  if not hb.wall or hb.z>z then
+  if not hb or not hb.wall or hb.z>z then
     local u=_S3Interp(lx,0,rx,1,x)
    _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true)
   end
@@ -761,9 +762,13 @@ function _S3RendFlats(hbuf)
    cby=min(cby,hb.ty)
    fty=max(fty,hb.by)
   end
-  line(x,0,x,cby,ceilC) -- ceiling is flat shaded
+  for y=0,cby do
+   if not _S3StencilRead(x,y) then pix(x,y,ceilC) end
+  end
   for y=fty,scrh-1 do
-   pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
+   if not _S3StencilRead(x,y) then
+    pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
+   end
   end
  end
 end
