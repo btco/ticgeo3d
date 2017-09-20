@@ -115,7 +115,8 @@ function TIC()
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
 
- _S3RendBill(350,25,200,50,50,320)
+ S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
+ --_S3RendBill(350,25,200,50,50,320)
  --DEBUG
  --S3RendStFloat(
  --  350,0,200,0,0,
@@ -389,6 +390,9 @@ local S3={
  --  tid: texture ID
  --  Computer at render time:
  --   sx,sy,sz: screen coords
+ --   sw,sh: width/height in screen coords
+ --   slx,srx: left/right x screen coord
+ --   sty,sby: top/bottom y screen coord
  bills={},
 }
 
@@ -518,8 +522,20 @@ function S3Rend()
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
  -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
+
+ -- First, prepare the HBUF. We will use it for
+ -- clipping.
  _S3PrepHbuf(hbuf,pvs)
+ -- Now render the billboards BEFORE the walls.
+ -- Billboards will write stencil, and will be clipped
+ -- by the HBUF.
+ _S3RendBills()
+ -- Now render the walls. Clipped by stencil so we
+ -- don't render over billboards.
  _S3RendHbuf(hbuf)
+ -- And lastly, render ceiling and floor. Clipped
+ -- by stencil so we don't render over anything
+ -- else.
  _S3RendFlats(hbuf)
  S3.t=S3.t+1
 end
@@ -672,22 +688,16 @@ end
 -- and write stencil. Clips against hbuf for depth.
 -- Billboards must be rendered from near to far,
 -- before walls.
-function _S3RendBill(cx,cy,cz,w,h,tid)
- local scx,scy,z=S3Proj(cx,cy,cz)
- -- From projection formula, this is how widths and
- -- heights project from world space to screen space:
- -- sw=117.78 ww/z
- -- sh=117.78 wh/z
- -- Where ww,wh=world width,height and z is depth.
- local sw=117.78*w/z
- local sh=117.78*h/z
- local lx,rx=S3Round(scx-0.5*sw),S3Round(scx+0.5*sw)
- local ty,by=S3Round(scy-0.5*sh),S3Round(scy+0.5*sh)
- if lx<0 and rx<0 or lx>SCRW or rx>SCRW
+function _S3RendBill(b)
+ if b.slx<0 and b.srx<0 or b.slx>240 or b.srx>136
    then return end
 
+ local lx,rx,z=b.slx,b.srx,b.sz
  local startx,endx,step=_S3AdjHbufIter(lx,rx)
+ local tid=b.tid
+ local ty,by=b.sty,b.sby
  local hbuf=S3.hbuf
+
  for x=startx,endx,step do
   -- clip against hbuf
   local hb=hbuf[x+1] -- 1-indexed
@@ -698,9 +708,50 @@ function _S3RendBill(cx,cy,cz,w,h,tid)
  end
 end
 
+-- Fills in the screen coordinates for the given
+-- billboard (sx,sy,sz,sh,sw,slx,srx,sty,sby).
+function _S3ProjBill(b)
+ b.sx,b.sy,b.sz=S3Proj(b.x,b.y,b.z)
+ -- From projection formula, this is how widths/
+ -- heights project from world to screen:
+ b.sw=117.78*b.w/b.sz
+ b.sh=117.78*b.h/b.sz
+ b.slx,b.srx=S3Round(b.sx-0.5*b.sw),
+   S3Round(b.sx+0.5*b.sw)
+ b.sty,b.sby=S3Round(b.sy-0.5*b.sh),
+   S3Round(b.sy+0.5*b.sh)
+end
+
 -- Renders all billboards. Writes stencil.
 function _S3RendBills()
- -- TODO TOT
+ local nclip,fclip=S3.NCLIP,S3.FCLIP
+ local bills=S3.bills
+ -- billboards to render, sorted by sz increasing
+ local r={}
+ for i=1,#bills do
+  local b=bills[i]
+  _S3ProjBill(b)
+  if b.slx<240 and b.srx>=0 and
+    b.sz>nclip and b.sz<fclip then
+   _S3BillIns(r,b)  -- potentially visible
+  end
+ end
+
+ -- r is sorted by depth (near to far). Render
+ -- in this order. This uses stencil and clips by
+ -- the hbuf, so we will get the right occlusion.
+ for i=1,#r do
+  _S3RendBill(r[i])
+ end
+end
+
+-- Inserts billboard b in list l, keeping l sorted
+-- by sz (screen z) increasing.
+function _S3BillIns(l,b)
+ for i=1,#l do
+  if l[i].sz>b.sz then table.insert(l,i,b) return end
+ end
+ table.insert(l,b)
 end
 
 -- Returns the fog factor (0=completely fogged/dark,
