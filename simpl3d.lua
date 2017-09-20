@@ -582,8 +582,8 @@ function _S3PrepHbuf(hbuf,walls)
   local hb=hbuf[x+1] -- hbuf is 1-indexed
   if hb.wall then
    local w=hb.wall
-   hb.ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
-   hb.by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
+   hb.ty=S3Round(_S3Interp(w.slx,w.slty,w.srx,w.srty,x))
+   hb.by=S3Round(_S3Interp(w.slx,w.slby,w.srx,w.srby,x))
   end
  end
 end
@@ -626,7 +626,9 @@ function _S3StencilRead(x,y)
 end
 
 function _S3StencilWrite(x,y)
- S3.stencil[240*y+x+1]=S3.t
+ if x>=0 and y>=0 and x<240 and y<136 then
+  S3.stencil[240*y+x+1]=S3.t
+ end
 end
 
 -- Render a "floating quad", without any depth
@@ -755,8 +757,8 @@ function _S3RendFlats(hbuf)
  local ceilC,floorC=S3.ceilC,S3.floorC
  local startx,endx,step=_S3AdjHbufIter(0,scrw-1)
  for x=startx,endx,step do
-  local cby=scrh/2 -- ceiling bottom y
-  local fty=scrh/2+1 -- floor top y
+  local cby=scrh//2 -- ceiling bottom y
+  local fty=scrh//2+1 -- floor top y
   local hb=hbuf[x+1] -- hbuf is 1-indexed
   if hb.wall then
    cby=min(cby,hb.ty)
