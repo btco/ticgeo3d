@@ -383,6 +383,13 @@ local S3={
  -- the frame when the value was written; any values
  -- below that are ignored.
  stencil={},
+ -- All billboards. Each:
+ --  x,y,z: world position of center
+ --  w,h: width and height, world coords
+ --  tid: texture ID
+ --  Computer at render time:
+ --   sx,sy,sz: screen coords
+ bills={},
 }
 
 function S3Init()
@@ -631,6 +638,13 @@ function _S3StencilWrite(x,y)
  end
 end
 
+-- Adds a billboard.
+function S3BillAdd(bill)
+ assert(bill.x and bill.y and bill.z and bill.w and
+  bill.h and bill.tid)
+ table.insert(S3.bills,bill)
+end
+
 -- Render a "floating quad", without any depth
 -- testing, but with transparency. Writes to
 -- the stencil buffer.
@@ -682,6 +696,11 @@ function _S3RendBill(cx,cy,cz,w,h,tid)
    _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true)
   end
  end
+end
+
+-- Renders all billboards. Writes stencil.
+function _S3RendBills()
+ -- TODO TOT
 end
 
 -- Returns the fog factor (0=completely fogged/dark,
