@@ -353,6 +353,12 @@ local S3={
  --     left side of wall (x, z, top y, bottom y)
  --   srx,srz,srty,srby: screen space coords of
  --     right side of wall (x, z, top y, bottom y)
+ --   clifs,clife: clip fraction start/end (0 to 1).
+ --     Indicates how much of this wall is being
+ --     drawn. If cfs=0 and cfe=1, whole wall. If
+ --     for example cfs=0.25 and cfe=1 then only
+ --     the right 3/4 of the wall are drawn (rest
+ --     is z-clipped).
  walls={},
  -- H-Buffer, used at render time:
  hbuf={},
@@ -584,11 +590,16 @@ function _S3ProjWall(w,boty,topy)
    local cutsx=_S3Interp(w.slz,w.slx,w.srz,w.srx,nclip)
    local f=(cutsx-w.slx)/(w.srx-w.slx)
    lx,lz=lx+f*(rx-lx),lz+f*(rz-lz)
+   w.clifs,w.clife=f,1
   elseif w.srz<nclip then -- right is nearer than nclip
    local cutsx=_S3Interp(w.slz,w.slx,w.srz,w.srx,nclip)
    local f=(cutsx-w.slx)/(w.srx-w.slx)
    rx,rz=lx+f*(rx-lx),lz+f*(rz-lz)
-  else return true end
+   w.clifs,w.clife=1,f
+  else
+   w.clifs,w.clife=0,1
+   return true
+  end
  end
 end
 
@@ -656,7 +667,7 @@ function _S3RendHbuf(hbuf)
   local w=hb.wall
   if w then
    local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
-   local u=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
+   local u=_S3PerspTexU(w,x)
    _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z)
   end
  end
@@ -831,11 +842,12 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
  end
 end
 
-function _S3PerspTexU(lx,lz,rx,rz,x)
- --local a=_S3Interp(lx,0,rx,1,x) 
- --return a/((1-a)*rz/lz+a)
- local iz=_S3Interp(lx,1/lz,rx,1/rz,x)
- local iu=_S3Interp(lx,0,rx,1/rz,x)
+-- Calculates the texture U coordinate for the given screen
+-- X coordinate of the given wall.
+function _S3PerspTexU(w,x)
+ local us,ue=w.clifs,w.clife
+ local iz=_S3Interp(w.slx,1/w.slz,w.srx,1/w.srz,x)
+ local iu=_S3Interp(w.slx,0,w.srx,1/w.srz,x)
  return iu/iz
 end
 
