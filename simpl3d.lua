@@ -81,6 +81,8 @@ local LVL={
  {name="Level Test",pg=1,pgw=1,pgh=1},
 }
 
+local DEBUGS=""
+
 function Boot()
  S3Init()
 
@@ -125,6 +127,7 @@ function TIC()
  S3Rend()
 
  print(S3Round(1000/(time()-stime)).."fps")
+ print(DEBUGS,4,12)
 end
 
 function StartLevel(lvlNo)
@@ -595,7 +598,7 @@ function _S3ProjWall(w,boty,topy)
    local cutsx=_S3Interp(w.slz,w.slx,w.srz,w.srx,nclip)
    local f=(cutsx-w.slx)/(w.srx-w.slx)
    rx,rz=lx+f*(rx-lx),lz+f*(rz-lz)
-   w.clifs,w.clife=1,f
+   w.clifs,w.clife=0,f
   else
    w.clifs,w.clife=0,1
    return true
@@ -846,9 +849,12 @@ end
 -- X coordinate of the given wall.
 function _S3PerspTexU(w,x)
  local us,ue=w.clifs,w.clife
- local iz=_S3Interp(w.slx,1/w.slz,w.srx,1/w.srz,x)
- local iu=_S3Interp(w.slx,0,w.srx,1/w.srz,x)
- return iu/iz
+ local a=_S3Interp(w.slx,us,w.srx,ue,x)
+ local oma=1-a
+ local u0,u1=us,ue
+ local iz0,iz1=1/w.slz,1/w.srz
+ local u=(oma*u0*iz0+a*u1*iz1)/(oma*iz0+a*iz1)
+ return u
 end
 
 -- Returns the factor by which to module the color
