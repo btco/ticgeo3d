@@ -817,11 +817,13 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
 end
 
 function _S3PerspTexU(lx,lz,rx,rz,x)
- local a=_S3Interp(lx,0,rx,1,x) 
- return a/((1-a)*rz/lz+a)
- --local iz=_S3Interp(lx,1/lz,rx,1/rz,x)
- --local iu=_S3Interp(lx,0,rx,1/rz,x)
- --return iu/iz
+ --local a=_S3Interp(lx,0,rx,1,x) 
+ --return a/((1-a)*rz/lz+a)
+ lz=abs(lz)
+ rz=abs(rz)
+ local iz=_S3Interp(lx,1/lz,rx,1/rz,x)
+ local iu=_S3Interp(lx,0,rx,1/rz,x)
+ return iu/iz
 end
 
 -- Returns the factor by which to module the color
