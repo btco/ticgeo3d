@@ -9,11 +9,11 @@ local SCRH=136
 local TSIZE=50
 
 -- Player's collision rect size
-local PLR_CS=18
+local PLR_CS=20
 
 local G={
  -- eye position and yaw
- ex=300, ey=25, ez=250, yaw=30,
+ ex=350, ey=25, ez=350, yaw=30,
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
@@ -78,10 +78,13 @@ local LVL={
  --   pg: map page where level starts.
  --   pgw,pgh: width and height of level, in pages
  {name="Level 1",pg=0,pgw=1,pgh=1},
+ {name="Level Test",pg=1,pgw=1,pgh=1},
 }
 
 function Boot()
  S3Init()
+
+ -- TEST:
  StartLevel(1)
 
  -- TEST
@@ -483,6 +486,9 @@ function _S3PvsAdd(c,r,w)
   t={}
   S3.pvstab[r*32768+c]=t
  end
+ for i=1,#t do
+  if t[i]==w then return end -- already in table
+ end
  table.insert(t,w)
 end
 
@@ -510,8 +516,8 @@ function S3Proj(x,y,z)
  local py=1.7321*y-1.7321*S3.ey
  local pz=s*x-z*c-b-0.2
  local pw=x*s-z*c-b
- local ndcx=px/pw
- local ndcy=py/pw
+ local ndcx=px/abs(pw)
+ local ndcy=py/abs(pw)
  return 120+ndcx*120,68-ndcy*68,pz
 end
 
@@ -564,10 +570,9 @@ function _S3ProjWall(w,boty,topy)
  w.slx,w.slz,w.slty,w.slby=ltx,ltz,lty,lby
  w.srx,w.srz,w.srty,w.srby=rtx,rtz,rty,rby
 
- -- TODO: fix aggressive clipping
- if w.slz<S3.NCLIP or w.srz<S3.NCLIP
+ if w.slz<S3.NCLIP and w.srz<S3.NCLIP
    then return false end
- if w.slz>S3.FCLIP or w.srz>S3.FCLIP
+ if w.slz>S3.FCLIP and w.srz>S3.FCLIP
    then return false end
  return true
 end
@@ -612,13 +617,18 @@ function _AddWallToHbuf(hbuf,w)
  local startx=max(0,S3Round(w.slx))
  local endx=min(SCRW-1,S3Round(w.srx))
  local step
+ local nclip,fclip=S3.NCLIP,S3.FCLIP
  startx,endx,step=_S3AdjHbufIter(startx,endx)
- for x=startx,endx do
+
+ for x=startx,endx,step do
   -- hbuf is 1-indexed (because Lua)
   local hbx=hbuf[x+1]
   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
-  if hbx.z>z then  -- depth test.
-   hbx.z,hbx.wall=z,w  -- write new depth.
+  if z>nclip and z<fclip then
+   if hbx.z>z then  -- depth test.
+    hbx.z,hbx.wall=z,w  -- write new depth.
+   else
+   end
   end
  end
 end
