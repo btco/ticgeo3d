@@ -13,7 +13,7 @@ local PLR_CS=18
 
 local G={
  -- eye position and yaw
- ex=250, ey=25, ez=250, yaw=180,
+ ex=300, ey=25, ez=250, yaw=30,
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
@@ -83,6 +83,10 @@ local LVL={
 function Boot()
  S3Init()
  StartLevel(1)
+
+ -- TEST
+ S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
+ S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
 end
 
 function TIC()
@@ -114,13 +118,6 @@ function TIC()
  DoorAnimUpdate(dt)
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
-
- S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
- --_S3RendBill(350,25,200,50,50,320)
- --DEBUG
- --S3RendStFloat(
- --  350,0,200,0,0,
- --  400,50,200,1,1,264)
 
  S3Rend()
 
@@ -689,7 +686,7 @@ end
 -- Billboards must be rendered from near to far,
 -- before walls.
 function _S3RendBill(b)
- if b.slx<0 and b.srx<0 or b.slx>240 or b.srx>136
+ if b.slx<0 and b.srx<0 or b.slx>240 and b.srx>136
    then return end
 
  local lx,rx,z=b.slx,b.srx,b.sz
@@ -787,8 +784,10 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
  local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,0),min(by,SCRH-1)
  if fogf<=0 then
-  -- Shortcut: just a black line.
-  line(x,aty,x,aby,0)
+  -- Shortcut: just a black line
+  for y=aty,aby do
+   if not _S3StencilRead(x,y) then pix(x,y,0) end
+  end
   return
  end
  v0,v1,ck=v0 or 0,v1 or 1,ck or -1
