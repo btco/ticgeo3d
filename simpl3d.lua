@@ -558,23 +558,38 @@ end
 function _S3ProjWall(w,boty,topy)
  topy=topy or S3.W_TOP_Y
  boty=boty or S3.W_BOT_Y
+ local nclip=S3.NCLIP
+ local fclip=S3.FCLIP
 
- -- notation: lt=left top, rt=right top, etc.
- local ltx,lty,ltz=S3Proj(w.lx,topy,w.lz)
- local rtx,rty,rtz=S3Proj(w.rx,topy,w.rz)
- if rtx<=ltx then return false end  -- cull back side
- if rtx<0 or ltx>=SCRW then return false end
- local lbx,lby,lbz=S3Proj(w.lx,boty,w.lz)
- local rbx,rby,rbz=S3Proj(w.rx,boty,w.rz)
+ local lx,lz,rx,rz=w.lx,w.lz,w.rx,w.rz
 
- w.slx,w.slz,w.slty,w.slby=ltx,ltz,lty,lby
- w.srx,w.srz,w.srty,w.srby=rtx,rtz,rty,rby
+ for try=1,2 do  -- second try is with z clipping
+  -- notation: lt=left top, rt=right top, etc.
+  local ltx,lty,ltz=S3Proj(lx,topy,lz)
+  local rtx,rty,rtz=S3Proj(rx,topy,rz)
+  if rtx<=ltx then return false end  -- cull back side
+  if rtx<0 or ltx>=SCRW then return false end
+  local lbx,lby,lbz=S3Proj(lx,boty,lz)
+  local rbx,rby,rbz=S3Proj(rx,boty,rz)
 
- if w.slz<S3.NCLIP and w.srz<S3.NCLIP
-   then return false end
- if w.slz>S3.FCLIP and w.srz>S3.FCLIP
-   then return false end
- return true
+  w.slx,w.slz,w.slty,w.slby=ltx,ltz,lty,lby
+  w.srx,w.srz,w.srty,w.srby=rtx,rtz,rty,rby
+
+  if w.slz<nclip and w.srz<nclip
+    then return false
+  elseif w.slz>fclip and w.srz>fclip
+    then return false
+  elseif try==2 then return true
+  elseif w.slz<nclip then -- left is nearer than nclip
+   local cutsx=_S3Interp(w.slz,w.slx,w.srz,w.srx,nclip)
+   local f=(cutsx-w.slx)/(w.srx-w.slx)
+   lx,lz=lx+f*(rx-lx),lz+f*(rz-lz)
+  elseif w.srz<nclip then -- right is nearer than nclip
+   local cutsx=_S3Interp(w.slz,w.slx,w.srz,w.srx,nclip)
+   local f=(cutsx-w.slx)/(w.srx-w.slx)
+   rx,rz=lx+f*(rx-lx),lz+f*(rz-lz)
+  else return true end
+ end
 end
 
 -- Calculates how to iterate over the HBUF in the
