@@ -651,6 +651,7 @@ local G={
  lvlNo=0,  -- level # we're currently playing
  lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
+ clk=0, -- game clock, seconds
 
  -- All the doors in the level. This is a dict indexed
  -- by r*240+c where c,r are the col/row on the map.
@@ -673,6 +674,7 @@ local G={
  -- Entities. Each has:
  --   etype: entity type (E.* constants)
  --   bill: the billboard that represents it
+ --   ctime: time when entity was created.
  ents={}
 }
 
@@ -694,14 +696,17 @@ local YANCH={
  CEIL=2,    -- entity anchors to the ceiling
 }
 
--- entity params, by type
+-- default entity params
 --  w,h: entity size in world space
 --  yanch: Y anchor (one of the YANCH.* consts)
 --  tid: fixed texture ID
+local ECFG_DFLT={
+ yanch=YANCH.FLOOR,
+}
+-- Entity params overrides (non-default) by type:
 local ECFG={
  [E.ZOMB]={
   w=50,h=50,
-  yanch=YANCH.FLOOR,
   tid=320,
  },
 }
@@ -764,6 +769,7 @@ function TIC()
  local PSPD=G.PSPD
  G.lftime=stime
  dt=dt*.001 -- convert to seconds
+ G.clk=G.clk+dt
  
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
@@ -955,13 +961,18 @@ end
 
 -- Adds an ent of the given type at the given pos.
 function EntAdd(etype,x,z)
- local ecfg=ECFG[etype]
- assert(ecfg)
+ local ecfg=Overlay(ECFG_DFLT,ECFG[etype] or {})
  local y=yanch==YANCH.FLOOR and FLOOR_Y+ecfg.h*0.5
    or (yanch==YANCH.CEIL and CEIL_Y-ecfg.h*0.5
    or (FLOOR_Y+CEIL_Y)*0.5)
- local e={etype=etype,bill={x=x,y=y,z=z,
-   w=ecfg.w,h=ecfg.h,tid=ecfg.tid}}
+ local e={
+  etype=etype,
+  ctime=G.clk,
+  bill={
+   x=x,y=y,z=z,
+   w=ecfg.w,h=ecfg.h,
+   tid=ecfg.tid
+ }}
  S3BillAdd(e.bill)
 end
 
@@ -993,6 +1004,21 @@ function RotPoint(ox,oz,px,pz,alpha)
  local ux,uz=px-ox,pz-oz
  local c,s=cos(alpha),sin(alpha)
  return ox+ux*c-uz*s,oz+uz*c+ux*s
+end
+
+-- Overlays (shallowly) the fields of table b over the
+-- fields of table a. So if a={x=1,y=2,z=3} and
+-- b={y=42,foo="bar"}, then this will return:
+-- {x=1,y=42,z=3,foo="bar"}.
+function Overlay(a,b)
+ local result={}
+ for k,v in pairs(a) do
+  result[k]=v
+ end
+ for k,v in pairs(b) do
+  result[k]=v
+ end
+ return result
 end
 
 Boot()
