@@ -1,344 +1,12 @@
+---------------------------------------------------
+-- S3 "Simple 3D" library
+---------------------------------------------------
 -- Constants and aliases:
 local sin,cos,PI=math.sin,math.cos,math.pi
 local floor,ceil,sqrt=math.floor,math.ceil,math.sqrt
 local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
 local SCRW=240
 local SCRH=136
-
--- Tile size in world coords
-local TSIZE=50
-
--- Player's collision rect size
-local PLR_CS=20
-
-local G={
- -- eye position and yaw
- ex=350, ey=25, ez=350, yaw=30,
- lvlNo=0,  -- level # we're currently playing
- lvl=nil,  -- reference to LVL[lvlNo]
- lftime=-1,  -- last frame time
-
- -- All the doors in the level. This is a dict indexed
- -- by r*240+c where c,r are the col/row on the map.
- -- The value is a reference to the wall that
- -- represents the (closed) door.
- doors={},
-
- -- If set, a door open animation is in progress
- -- Fields:
- --   w: the wall being animated.
- --   irx,irz: initial pos of door's right side
- --   phi: how much door has rotated so far
- --     (this increases until it's PI/2,
- --     then the animation ends).
- doorAnim=nil,
-
- -- Player speed (linear and angular)
- PSPD=120,PASPD=1.2,
- 
- -- Entities. Each has:
- --   type: entity type (E.* constants)
- --   bill: the billboard that represents it
- ents={}
-}
-
--- sprite numbers
-local S={
- FLAG=240,
- META_0=241,
-}
-
--- entity types
-E={
- ZOMB=1,
-}
-
--- tile flags
-local TF={
- -- walls in the tile
- N=1,E=2,S=4,W=8,
- -- tile is non-solid.
- NSLD=0x10,
- -- tile is a door
- DOOR=0x20,
-}
-
--- tile descriptors
--- w: which walls this tile contains
-local TD={
- -- Stone walls
- [1]={f=TF.S|TF.E,tid=256},
- [2]={f=TF.S,tid=256},
- [3]={f=TF.S|TF.W,tid=256},
- [17]={f=TF.E,tid=256},
- [19]={f=TF.W,tid=256},
- [33]={f=TF.N|TF.E,tid=256},
- [34]={f=TF.N,tid=256},
- [35]={f=TF.N|TF.W,tid=256},
- -- Doors
- [5]={f=TF.S|TF.DOOR,tid=260},
- [20]={f=TF.E|TF.DOOR,tid=260},
- [22]={f=TF.W|TF.DOOR,tid=260},
- [37]={f=TF.N|TF.DOOR,tid=260},
-}
-
-local LVL={
- -- Each has:
- --   name: display name of level.
- --   pg: map page where level starts.
- --   pgw,pgh: width and height of level, in pages
- {name="Level 1",pg=0,pgw=1,pgh=1},
- {name="Level Test",pg=1,pgw=1,pgh=1},
-}
-
-local DEBUGS=""
-
-function Boot()
- S3Init()
-
- -- TEST:
- StartLevel(1)
-
- -- TEST
- S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
- S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
-end
-
-function TIC()
- local stime=time()
- local dt=G.lftime and (stime-G.lftime) or 16
- local PSPD=G.PSPD
- G.lftime=stime
- dt=dt*.001 -- convert to seconds
- 
- local fwd=btn(0) and 1 or btn(1) and -1 or 0
- local right=btn(2) and -1 or btn(3) and 1 or 0
-
- local vx=-sin(G.yaw)*fwd
- local vz=-cos(G.yaw)*fwd
- MovePlr(PSPD*dt,vx,vz)
-
- if btn(4) then
-  -- strafe
-  vx=-math.sin(G.yaw-1.5708)*right
-  vz=-math.cos(G.yaw-1.5708)*right
-  MovePlr(PSPD*dt,vx,vz)
- else
-  G.yaw=G.yaw-right*G.PASPD*dt
- end
-
- -- Try to open a door.
- if btnp(5) then TryOpenDoor() end
-
- DoorAnimUpdate(dt)
-
- S3SetCam(G.ex,G.ey,G.ez,G.yaw)
-
- S3Rend()
-
- print(S3Round(1000/(time()-stime)).."fps")
- print(DEBUGS,4,12)
-end
-
-function StartLevel(lvlNo)
- G.lvlNo=lvlNo
- G.lvl=LVL[lvlNo]
- local lvl=G.lvl
- S3Reset()
-
- for r=0,lvl.pgh*17-1 do
-  for c=0,lvl.pgw*30-1 do
-   local t=LvlTile(c,r)
-   local td=TD[t]
-   if td then AddWalls(c,r,td) end
-  end
- end
-end
-
--- Add a door (wall w) at col/row.
-function DoorAdd(c,r,w) G.doors[r*240+c]=w end
-
--- Looks for a door at the given col,row,
--- nil if not found.
-function DoorAt(c,r) return G.doors[r*240+c] end
-
--- Deletes a door at the given col,row.
-function DoorDel(c,r) G.doors[r*240+c]=nil end
-
--- Opens the door at the given coordinates.
-function DoorOpen(c,r)
- local w=DoorAt(c,r)
- if not w then return false end
- -- Start door open animation.
- G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
- LvlTile(c,r,0)  -- becomes empty tile
- DoorDel(c,r)
- return true
-end
-
-function DoorAnimUpdate(dt)
- local anim=G.doorAnim
- if not anim then return end
- anim.phi=anim.phi+dt*1.5
- local phi=min(anim.phi,1.5)
- anim.w.rx,anim.w.rz=RotPoint(
-  anim.w.lx,anim.w.lz,anim.irx,anim.irz,-phi)
- if anim.phi>1.5 then
-  G.doorAnim=nil
-  return
- end
-end
-
-function TryOpenDoor()
- local c0,r0=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
- local pfwdx,pfwdz=-sin(G.yaw),-cos(G.yaw)
- for c=c0-2,c0+2 do
-  for r=r0-2,r0+2 do
-   local dx,dz=S3Normalize(c*TSIZE-G.ex,r*TSIZE-G.ez)
-   if S3Dot(dx,dz,pfwdx,pfwdz)>0.8 then
-    if DoorOpen(c,r) then return end
-   end
-  end
- end
-end
-
--- Add the walls belonging to the given level tile.
-function AddWalls(c,r,td)
- local s=TSIZE
- local xw,xe=c*s,(c+1)*s -- x of east and west
- local zn,zs=r*s,(r+1)*s -- z of north and south
- local isdoor=(0~=td.f&TF.DOOR)
- if 0~=(td.f&TF.N) then
-  -- north wall
-  AddWall({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid},
-   c,r,isdoor)
- end
- if 0~=(td.f&TF.S) then
-  -- south wall
-  AddWall({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid},
-   c,r,isdoor)
- end
- if 0~=(td.f&TF.E) then
-  -- east wall
-  AddWall({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid},
-   c,r,isdoor)
- end
- if 0~=(td.f&TF.W) then
-  -- west wall
-  AddWall({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid},
-   c,r,isdoor)
- end
-end
-
-function AddWall(w,c,r,isdoor)
- S3WallAdd(w)
- if isdoor then DoorAdd(c,r,w) end
-end
-
--- Returns the level tile at c,r.
--- If newval is given, it will be set as the new
--- value.
-function LvlTile(c,r,newval)
- if c>=G.lvl.pgw*30 or
-   r>=G.lvl.pgh*17 or c<0 or r<0 then
-  return 0
- end
- local c0,r0=MapPageStart(G.lvl.pg)
- local val=mget(c0+c,r0+r)
- if newval then mset(c0+c,r0+r,newval) end
- return val
-end
-
--- Returns col,row where the given map page starts.
-function MapPageStart(pg)
- return (pg%8)*30,(pg//8)*16
-end
-
--- Gets the meta "value" of the given tile, or nil
--- if it has none.
-function MetaValue(t)
- if t>=S.META_0 and t<=S.META_0+9 then
-  return t-S.META_0
- end
-end
-
--- Gets the meta value of a meta tile that's adjacent
--- to the given tile, nil if not found. This is called
--- the tile "label".
-function TileLabel(tc,tr)
- for c=tc-1,tc+1 do
-  for r=tr-1,tr+1 do
-   local mv=MetaValue(LvlTile(c,r))
-   if mv then return mv end
-  end
- end
- return nil
-end
-
--- Moves player, taking care not to collide with
--- solid tiles.
--- d: the total distance to move the player
--- vx,vz: the direction (normalized) in which to move
--- the player.
-function MovePlr(d,vx,vz)
- local STEP=1
- local ex,ez=G.ex,G.ez
- while d>0 do
-  local l=min(d,STEP)  -- how much to move this step
-  d=d-STEP
-  -- Candidate positions (a, b and c):
-  -- (this allows player to slide along walls).
-  local ax,az=ex+l*vx,ez+l*vz -- full motion
-  local bx,bz=ex,ez+l*vz  -- move only in Z direction
-  local cx,cz=ex+l*vx,ez  -- move only in X direction
-  if IsPosValid(ax,az) then ex,ez=ax,az
-  elseif IsPosValid(bx,bz) then ex,ez=bx,bz
-  elseif IsPosValid(cx,cz) then ex,ez=cx,cz
-  else break end  -- motion completely blocked
- end
- G.ex,G.ez=ex,ez
-end
-
-function EntAdd(type,x,y,z)
- table.insert(G.ents,{
-  type=type,
-  bill=
-  	TOT
-end
-
--- Returns if the given position is valid as a 
--- player position (that is, doesn't collide with
--- any solid tiles).
-function IsPosValid(x,z)
- local cs=PLR_CS
- -- Test four corners of player's collision rect.
- return not IsInSolidTile(x-cs,z-cs) and
-   not IsInSolidTile(x-cs,z+cs) and
-   not IsInSolidTile(x+cs,z-cs) and
-   not IsInSolidTile(x+cs,z+cs)
-end
-
--- Returns whether the given position lies within
--- a solid tile.
-function IsInSolidTile(x,z)
- local c,r=floor(x/TSIZE),floor(z/TSIZE)
- local t=LvlTile(c,r)
- local td=TD[t]
- if not td then return false end
- return 0==td.f&TF.NSLD
-end
-
--- Rotate point P=px,pz about point O=ox,oz
--- by an angle of alpha radians.
-function RotPoint(ox,oz,px,pz,alpha)
- local ux,uz=px-ox,pz-oz
- local c,s=cos(alpha),sin(alpha)
- return ox+ux*c-uz*s,oz+uz*c+ux*s
-end
-
----------------------------------------------------
--- S3 "Simple 3D" library
----------------------------------------------------
 
 local S3={
  -- eye coordinates (world coords)
@@ -355,8 +23,8 @@ local S3={
  NCLIP=0.1,
  FCLIP=1000,
  -- min/max world Y coord of all walls
- W_BOT_Y=0,
- W_TOP_Y=50,
+ FLOOR_Y=0,
+ CEIL_Y=50,
  -- fog start and end dists (squared)
  FOG_S=20000,
  FOG_E=80000,
@@ -367,7 +35,7 @@ local S3={
  --
  --  lx,lz,rx,rz: x,z coords of left and right endpts
  --  in world coords (y coord is auto, goes from
- --  W_BOT_Y to W_TOP_Y)
+ --  FLOOR_Y to CEIL_Y)
  --  tid: texture ID
  --
  --  Computed at render time:
@@ -406,6 +74,8 @@ local S3={
  --   ramp (reference to a ramp in clrM)
  --   i (index of the color within the ramp).
  clrMR={}, -- computed on init
+ -- PVS (Potentially Visible Set) grid square size.
+ PVS_CELL=50,
  -- Potentially visible set of walls for each
  -- tile that the player can be on. This is indexed
  -- by r*10000+c and gives an array of walls
@@ -499,7 +169,7 @@ function _S3WallReg(x,z,w)
  local RADIUS=6
  local RADIUS2=RADIUS*RADIUS
  x,z=S3Round(x),S3Round(z)
- local centerC,centerR=x//TSIZE,z//TSIZE
+ local centerC,centerR=x//S3.PVS_CELL,z//S3.PVS_CELL
  for r=centerR-RADIUS,centerR+RADIUS do
   for c=centerC-RADIUS,centerC+RADIUS do
    local dist2=(c-centerC)*(c-centerC)+
@@ -529,7 +199,7 @@ end
 local _S3PvsGet_empty={}
 function _S3PvsGet(x,z)
  x,z=S3Round(x),S3Round(z)
- local c,r=x//TSIZE,z//TSIZE
+ local c,r=x//S3.PVS_CELL,z//S3.PVS_CELL
  return S3.pvstab[r*32768+c] or _S3PvsGet_empty;
 end
 
@@ -588,8 +258,8 @@ end
 
 -- Compute screen-space coords for wall.
 function _S3ProjWall(w,boty,topy)
- topy=topy or S3.W_TOP_Y
- boty=boty or S3.W_BOT_Y
+ topy=topy or S3.CEIL_Y
+ boty=boty or S3.FLOOR_Y
  local nclip=S3.NCLIP
  local fclip=S3.FCLIP
 
@@ -955,5 +625,374 @@ function S3Normalize(x,z)
  return x/l,z/l
 end
 
+
+
+
+
+
+
+
 --------------------------------------------------
+-- GAME LOGIC
+--------------------------------------------------
+
+-- Tile size in world coords
+local TSIZE=50
+
+-- Player's collision rect size
+local PLR_CS=20
+
+local FLOOR_Y=S3.FLOOR_Y
+local CEIL_Y=S3.CEIL_Y
+
+local G={
+ -- eye position and yaw
+ ex=350, ey=25, ez=350, yaw=30,
+ lvlNo=0,  -- level # we're currently playing
+ lvl=nil,  -- reference to LVL[lvlNo]
+ lftime=-1,  -- last frame time
+
+ -- All the doors in the level. This is a dict indexed
+ -- by r*240+c where c,r are the col/row on the map.
+ -- The value is a reference to the wall that
+ -- represents the (closed) door.
+ doors={},
+
+ -- If set, a door open animation is in progress
+ -- Fields:
+ --   w: the wall being animated.
+ --   irx,irz: initial pos of door's right side
+ --   phi: how much door has rotated so far
+ --     (this increases until it's PI/2,
+ --     then the animation ends).
+ doorAnim=nil,
+
+ -- Player speed (linear and angular)
+ PSPD=120,PASPD=1.2,
+ 
+ -- Entities. Each has:
+ --   etype: entity type (E.* constants)
+ --   bill: the billboard that represents it
+ ents={}
+}
+
+-- sprite numbers
+local S={
+ FLAG=240,
+ META_0=241,
+}
+
+-- entity types
+local E={
+ ZOMB=1,
+}
+
+-- possible Y anchors for entities
+local YANCH={
+ FLOOR=0,   -- entity anchors to the floor
+ CENTER=1,  -- entity is centered vertically
+ CEIL=2,    -- entity anchors to the ceiling
+}
+
+-- entity params, by type
+--  w,h: entity size in world space
+--  yanch: Y anchor (one of the YANCH.* consts)
+--  tid: fixed texture ID
+local ECFG={
+ [E.ZOMB]={
+  w=50,h=50,
+  yanch=YANCH.FLOOR,
+  tid=320,
+ },
+}
+
+-- tile flags
+local TF={
+ -- walls in the tile
+ N=1,E=2,S=4,W=8,
+ -- tile is non-solid.
+ NSLD=0x10,
+ -- tile is a door
+ DOOR=0x20,
+}
+
+-- tile descriptors
+-- w: which walls this tile contains
+local TD={
+ -- Stone walls
+ [1]={f=TF.S|TF.E,tid=256},
+ [2]={f=TF.S,tid=256},
+ [3]={f=TF.S|TF.W,tid=256},
+ [17]={f=TF.E,tid=256},
+ [19]={f=TF.W,tid=256},
+ [33]={f=TF.N|TF.E,tid=256},
+ [34]={f=TF.N,tid=256},
+ [35]={f=TF.N|TF.W,tid=256},
+ -- Doors
+ [5]={f=TF.S|TF.DOOR,tid=260},
+ [20]={f=TF.E|TF.DOOR,tid=260},
+ [22]={f=TF.W|TF.DOOR,tid=260},
+ [37]={f=TF.N|TF.DOOR,tid=260},
+}
+
+local LVL={
+ -- Each has:
+ --   name: display name of level.
+ --   pg: map page where level starts.
+ --   pgw,pgh: width and height of level, in pages
+ {name="Level 1",pg=0,pgw=1,pgh=1},
+ {name="Level Test",pg=1,pgw=1,pgh=1},
+}
+
+local DEBUGS=""
+
+function Boot()
+ S3Init()
+
+ -- TEST:
+ StartLevel(1)
+
+ -- TEST
+ --S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
+ --S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
+ EntAdd(E.ZOMB,350,200)
+end
+
+function TIC()
+ local stime=time()
+ local dt=G.lftime and (stime-G.lftime) or 16
+ local PSPD=G.PSPD
+ G.lftime=stime
+ dt=dt*.001 -- convert to seconds
+ 
+ local fwd=btn(0) and 1 or btn(1) and -1 or 0
+ local right=btn(2) and -1 or btn(3) and 1 or 0
+
+ local vx=-sin(G.yaw)*fwd
+ local vz=-cos(G.yaw)*fwd
+ MovePlr(PSPD*dt,vx,vz)
+
+ if btn(4) then
+  -- strafe
+  vx=-math.sin(G.yaw-1.5708)*right
+  vz=-math.cos(G.yaw-1.5708)*right
+  MovePlr(PSPD*dt,vx,vz)
+ else
+  G.yaw=G.yaw-right*G.PASPD*dt
+ end
+
+ -- Try to open a door.
+ if btnp(5) then TryOpenDoor() end
+
+ DoorAnimUpdate(dt)
+
+ S3SetCam(G.ex,G.ey,G.ez,G.yaw)
+
+ S3Rend()
+
+ print(S3Round(1000/(time()-stime)).."fps")
+ print(DEBUGS,4,12)
+end
+
+function StartLevel(lvlNo)
+ G.lvlNo=lvlNo
+ G.lvl=LVL[lvlNo]
+ local lvl=G.lvl
+ S3Reset()
+
+ for r=0,lvl.pgh*17-1 do
+  for c=0,lvl.pgw*30-1 do
+   local t=LvlTile(c,r)
+   local td=TD[t]
+   if td then AddWalls(c,r,td) end
+  end
+ end
+end
+
+-- Add a door (wall w) at col/row.
+function DoorAdd(c,r,w) G.doors[r*240+c]=w end
+
+-- Looks for a door at the given col,row,
+-- nil if not found.
+function DoorAt(c,r) return G.doors[r*240+c] end
+
+-- Deletes a door at the given col,row.
+function DoorDel(c,r) G.doors[r*240+c]=nil end
+
+-- Opens the door at the given coordinates.
+function DoorOpen(c,r)
+ local w=DoorAt(c,r)
+ if not w then return false end
+ -- Start door open animation.
+ G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
+ LvlTile(c,r,0)  -- becomes empty tile
+ DoorDel(c,r)
+ return true
+end
+
+function DoorAnimUpdate(dt)
+ local anim=G.doorAnim
+ if not anim then return end
+ anim.phi=anim.phi+dt*1.5
+ local phi=min(anim.phi,1.5)
+ anim.w.rx,anim.w.rz=RotPoint(
+  anim.w.lx,anim.w.lz,anim.irx,anim.irz,-phi)
+ if anim.phi>1.5 then
+  G.doorAnim=nil
+  return
+ end
+end
+
+function TryOpenDoor()
+ local c0,r0=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
+ local pfwdx,pfwdz=-sin(G.yaw),-cos(G.yaw)
+ for c=c0-2,c0+2 do
+  for r=r0-2,r0+2 do
+   local dx,dz=S3Normalize(c*TSIZE-G.ex,r*TSIZE-G.ez)
+   if S3Dot(dx,dz,pfwdx,pfwdz)>0.8 then
+    if DoorOpen(c,r) then return end
+   end
+  end
+ end
+end
+
+-- Add the walls belonging to the given level tile.
+function AddWalls(c,r,td)
+ local s=TSIZE
+ local xw,xe=c*s,(c+1)*s -- x of east and west
+ local zn,zs=r*s,(r+1)*s -- z of north and south
+ local isdoor=(0~=td.f&TF.DOOR)
+ if 0~=(td.f&TF.N) then
+  -- north wall
+  AddWall({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid},
+   c,r,isdoor)
+ end
+ if 0~=(td.f&TF.S) then
+  -- south wall
+  AddWall({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid},
+   c,r,isdoor)
+ end
+ if 0~=(td.f&TF.E) then
+  -- east wall
+  AddWall({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid},
+   c,r,isdoor)
+ end
+ if 0~=(td.f&TF.W) then
+  -- west wall
+  AddWall({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid},
+   c,r,isdoor)
+ end
+end
+
+function AddWall(w,c,r,isdoor)
+ S3WallAdd(w)
+ if isdoor then DoorAdd(c,r,w) end
+end
+
+-- Returns the level tile at c,r.
+-- If newval is given, it will be set as the new
+-- value.
+function LvlTile(c,r,newval)
+ if c>=G.lvl.pgw*30 or
+   r>=G.lvl.pgh*17 or c<0 or r<0 then
+  return 0
+ end
+ local c0,r0=MapPageStart(G.lvl.pg)
+ local val=mget(c0+c,r0+r)
+ if newval then mset(c0+c,r0+r,newval) end
+ return val
+end
+
+-- Returns col,row where the given map page starts.
+function MapPageStart(pg)
+ return (pg%8)*30,(pg//8)*16
+end
+
+-- Gets the meta "value" of the given tile, or nil
+-- if it has none.
+function MetaValue(t)
+ if t>=S.META_0 and t<=S.META_0+9 then
+  return t-S.META_0
+ end
+end
+
+-- Gets the meta value of a meta tile that's adjacent
+-- to the given tile, nil if not found. This is called
+-- the tile "label".
+function TileLabel(tc,tr)
+ for c=tc-1,tc+1 do
+  for r=tr-1,tr+1 do
+   local mv=MetaValue(LvlTile(c,r))
+   if mv then return mv end
+  end
+ end
+ return nil
+end
+
+-- Moves player, taking care not to collide with
+-- solid tiles.
+-- d: the total distance to move the player
+-- vx,vz: the direction (normalized) in which to move
+-- the player.
+function MovePlr(d,vx,vz)
+ local STEP=1
+ local ex,ez=G.ex,G.ez
+ while d>0 do
+  local l=min(d,STEP)  -- how much to move this step
+  d=d-STEP
+  -- Candidate positions (a, b and c):
+  -- (this allows player to slide along walls).
+  local ax,az=ex+l*vx,ez+l*vz -- full motion
+  local bx,bz=ex,ez+l*vz  -- move only in Z direction
+  local cx,cz=ex+l*vx,ez  -- move only in X direction
+  if IsPosValid(ax,az) then ex,ez=ax,az
+  elseif IsPosValid(bx,bz) then ex,ez=bx,bz
+  elseif IsPosValid(cx,cz) then ex,ez=cx,cz
+  else break end  -- motion completely blocked
+ end
+ G.ex,G.ez=ex,ez
+end
+
+-- Adds an ent of the given type at the given pos.
+function EntAdd(etype,x,z)
+ local ecfg=ECFG[etype]
+ assert(ecfg)
+ local y=yanch==YANCH.FLOOR and FLOOR_Y+ecfg.h*0.5
+   or (yanch==YANCH.CEIL and CEIL_Y-ecfg.h*0.5
+   or (FLOOR_Y+CEIL_Y)*0.5)
+ local e={etype=etype,bill={x=x,y=y,z=z,
+   w=ecfg.w,h=ecfg.h,tid=ecfg.tid}}
+ S3BillAdd(e.bill)
+end
+
+-- Returns if the given position is valid as a 
+-- player position (that is, doesn't collide with
+-- any solid tiles).
+function IsPosValid(x,z)
+ local cs=PLR_CS
+ -- Test four corners of player's collision rect.
+ return not IsInSolidTile(x-cs,z-cs) and
+   not IsInSolidTile(x-cs,z+cs) and
+   not IsInSolidTile(x+cs,z-cs) and
+   not IsInSolidTile(x+cs,z+cs)
+end
+
+-- Returns whether the given position lies within
+-- a solid tile.
+function IsInSolidTile(x,z)
+ local c,r=floor(x/TSIZE),floor(z/TSIZE)
+ local t=LvlTile(c,r)
+ local td=TD[t]
+ if not td then return false end
+ return 0==td.f&TF.NSLD
+end
+
+-- Rotate point P=px,pz about point O=ox,oz
+-- by an angle of alpha radians.
+function RotPoint(ox,oz,px,pz,alpha)
+ local ux,uz=px-ox,pz-oz
+ local c,s=cos(alpha),sin(alpha)
+ return ox+ux*c-uz*s,oz+uz*c+ux*s
+end
+
 Boot()
