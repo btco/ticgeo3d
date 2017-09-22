@@ -35,6 +35,11 @@ local G={
 
  -- Player speed (linear and angular)
  PSPD=120,PASPD=1.2,
+ 
+ -- Entities. Each has:
+ --   type: entity type (E.* constants)
+ --   bill: the billboard that represents it
+ ents={}
 }
 
 -- sprite numbers
