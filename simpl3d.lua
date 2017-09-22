@@ -675,6 +675,7 @@ local G={
  --   etype: entity type (E.* constants)
  --   bill: the billboard that represents it
  --   ctime: time when entity was created.
+ --   anim: active animation (optional)
  ents={}
 }
 
@@ -687,6 +688,11 @@ local S={
 -- entity types
 local E={
  ZOMB=1,
+}
+
+-- animations
+local ANIM={
+ ZOMBW={inter=0.2,tids={320,384}},
 }
 
 -- possible Y anchors for entities
@@ -707,7 +713,7 @@ local ECFG_DFLT={
 local ECFG={
  [E.ZOMB]={
   w=50,h=50,
-  tid=320,
+  anim=ANIM.ZOMBW,
  },
 }
 
@@ -793,6 +799,7 @@ function TIC()
  DoorAnimUpdate(dt)
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
+ UpdateEnts()
 
  S3Rend()
 
@@ -895,6 +902,20 @@ function AddWall(w,c,r,isdoor)
  if isdoor then DoorAdd(c,r,w) end
 end
 
+function UpdateEnts()
+ local ents=G.ents
+ for i=1,#ents do
+  UpdateEnt(ents[i]]
+ end
+end
+
+function UpdateEnt(e)
+ if e.anim then
+  local frs=floor((G.clk-e.ctime)/e.anim.inter)
+  e.bill.tid=e.anim.tids[1+frs%#e.anim.tids]
+ end
+end
+
 -- Returns the level tile at c,r.
 -- If newval is given, it will be set as the new
 -- value.
@@ -965,13 +986,15 @@ function EntAdd(etype,x,z)
  local y=yanch==YANCH.FLOOR and FLOOR_Y+ecfg.h*0.5
    or (yanch==YANCH.CEIL and CEIL_Y-ecfg.h*0.5
    or (FLOOR_Y+CEIL_Y)*0.5)
+ local tid=ecfg.anim and ecfg.anim.tids[1] or ecfg.tid
  local e={
   etype=etype,
   ctime=G.clk,
+  anim=ecfg.anim,
   bill={
    x=x,y=y,z=z,
    w=ecfg.w,h=ecfg.h,
-   tid=ecfg.tid
+   tid=tid
  }}
  S3BillAdd(e.bill)
 end
