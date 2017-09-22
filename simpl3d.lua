@@ -48,6 +48,11 @@ local S={
  META_0=241,
 }
 
+-- entity types
+E={
+ ZOMB=1,
+}
+
 -- tile flags
 local TF={
  -- walls in the tile
@@ -292,6 +297,13 @@ function MovePlr(d,vx,vz)
   else break end  -- motion completely blocked
  end
  G.ex,G.ez=ex,ez
+end
+
+function EntAdd(type,x,y,z)
+ table.insert(G.ents,{
+  type=type,
+  bill=
+  	TOT
 end
 
 -- Returns if the given position is valid as a 
