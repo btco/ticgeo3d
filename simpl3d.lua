@@ -905,7 +905,7 @@ end
 function UpdateEnts()
  local ents=G.ents
  for i=1,#ents do
-  UpdateEnt(ents[i]]
+  UpdateEnt(ents[i])
  end
 end
 
