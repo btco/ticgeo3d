@@ -9,7 +9,7 @@ local SCRH=136
 local TSIZE=50
 
 -- Player's collision rect size
-local PLR_CS=25
+local PLR_CS=20
 
 local G={
  -- eye position and yaw
@@ -277,6 +277,7 @@ function MovePlr(d,vx,vz)
   local l=min(d,STEP)  -- how much to move this step
   d=d-STEP
   -- Candidate positions (a, b and c):
+  -- (this allows player to slide along walls).
   local ax,az=ex+l*vx,ez+l*vz -- full motion
   local bx,bz=ex,ez+l*vz  -- move only in Z direction
   local cx,cz=ex+l*vx,ez  -- move only in X direction
@@ -330,9 +331,10 @@ local S3={
  -- Clock (in frames).
  t=0,
  -- If true, interleave frames for performance
+ -- (each frame alternates drawing odd/even cols).
  ILEAVE=true,
  -- These are hard-coded into the projection function,
- -- so if you change then, also update the math.
+ -- so if you change them, also update the math.
  NCLIP=0.1,
  FCLIP=1000,
  -- min/max world Y coord of all walls
@@ -363,7 +365,11 @@ local S3={
  --     the right 3/4 of the wall are drawn (rest
  --     is z-clipped).
  walls={},
- -- H-Buffer, used at render time:
+ -- H-Buffer, used at render time. For each screen
+ -- X coordinate x, hbuf[x+1] (1-based) stores
+ -- info about which wall will be rendered on that
+ -- coord, and also depth. This allows clipping and
+ -- rudimentary depth testing.
  hbuf={},
  -- Floor and ceiling colors.
  floorC=9,
