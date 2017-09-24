@@ -910,6 +910,10 @@ function UpdateEnts()
 end
 
 function UpdateEnt(e)
+ UpdateEntAnim(e)
+end
+
+function UpdateEntAnim(e)
  if e.anim then
   local frs=floor((G.clk-e.ctime)/e.anim.inter)
   e.bill.tid=e.anim.tids[1+frs%#e.anim.tids]
@@ -997,6 +1001,7 @@ function EntAdd(etype,x,z)
    tid=tid
  }}
  S3BillAdd(e.bill)
+ table.insert(G.ents,e)
 end
 
 -- Returns if the given position is valid as a 
