@@ -662,6 +662,9 @@ local G={
  --   pursues: (bool) does it pursue the player?
  --   speed: speed of motion, if it moves
  ents={}
+
+ -- Note: when adding new state fields, also
+ -- add code to reset these fields in StartLevel()
 }
 
 -- sprite numbers
@@ -802,6 +805,9 @@ function StartLevel(lvlNo)
  G.lvl=LVL[lvlNo]
  local lvl=G.lvl
  S3Reset()
+ G.doors={}
+ G.doorAnim=nil
+ G.ents={}
 
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
