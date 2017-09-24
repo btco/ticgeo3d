@@ -661,7 +661,10 @@ local G={
  --  Behavior-related fields:
  --   pursues: (bool) does it pursue the player?
  --   speed: speed of motion, if it moves
- ents={}
+ ents={},
+
+ -- Player's hitpoints (floating point, 0-100)
+ hp=100,
 
  -- Note: when adding new state fields, also
  -- add code to reset these fields in StartLevel()
@@ -808,6 +811,7 @@ function StartLevel(lvlNo)
  G.doors={}
  G.doorAnim=nil
  G.ents={}
+ G.hp=100
 
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
@@ -1042,7 +1046,7 @@ function RendHud(full)
  else
   rect(5,HUDY+8,16,8,1)
  end
- print("100",6,HUDY+8)
+ print(G.hp,6,HUDY+8)
 end
 
 -- Returns if the given position is valid as a 
