@@ -750,10 +750,11 @@ end
 
 function TIC()
  local stime=time()
- local dt=G.lftime and (stime-G.lftime) or 16
+ local dtmillis=G.lftime and (stime-G.lftime) or 16
  local PSPD=G.PSPD
  G.lftime=stime
- dt=dt*.001 -- convert to seconds
+ G.dt=dtmillis*.001 -- convert to seconds
+ local dt=G.dt
  G.clk=G.clk+dt
  
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
@@ -890,6 +891,9 @@ end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
+ if e.etype==E.ZOMB then
+  EntPursuePlr(e)
+ end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -899,7 +903,7 @@ end
 function UpdateEntAnim(e)
  if e.anim then
   local frs=floor((G.clk-e.ctime)/e.anim.inter)
-  e.tid=e.tids[1+frs%#e.anim.tids]
+  e.tid=e.anim.tids[1+frs%#e.anim.tids]
  end
 end
 
@@ -907,17 +911,25 @@ function EntPursuePlr(e)
  if not e.speed then return end
  local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
  if dist2>250000 then return end
+ local dt=G.dt
 
  -- Find the move direction that brings us closest
  -- to the player.
- for my=-1,1 do
+ local bestx,bestz,bestd2=nil,nil,nil
+ for mz=-1,1 do
   for mx=-1,1 do
-   -- Candidate position:
-   -- TODO/TOT
-   local px,py=G.ex+
+   local px,pz=e.x+mx*e.speed*dt,
+     e.z+mz*e.speed*dt
+   if IsPosValid(px,pz) then
+    local d2=DistSqToPlr(px,pz)
+    if not bestd2 or d2<bestd2 then
+     bestx,bestz,bestd2=px,pz,d2
+    end
+   end
   end
  end
-
+ if not bestx then return end
+ e.x,e.z=bestx,bestz
 end
 
 -- Returns the level tile at c,r.
@@ -987,7 +999,7 @@ end
 -- Adds an ent of the given type at the given pos.
 function EntAdd(etype,x,z)
  local e=Overlay({},
-   Overlay(ECFG,DFLT,ECFG[etype] or {}))
+   Overlay(ECFG_DFLT,ECFG[etype] or {}))
  e.x,e.z=x,z
  e.y=e.yanch==YANCH.FLOOR and FLOOR_Y+e.h*0.5
    or (e.yanch==YANCH.CEIL and CEIL_Y-e.h*0.5
@@ -1051,6 +1063,14 @@ end
 
 function DistXZ(x1,z1,x2,z2)
  return sqrt(DistSqXZ(x1,z1,x2,z2))
+end
+
+function DistSqToPlr(x,z)
+ return DistSqXZ(x,z,G.ex,G.ez)
+end
+
+function DistToPlr(x,z)
+ return DistXZ(x,z,G.ex,G.ez)
 end
 
 Boot()
