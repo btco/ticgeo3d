@@ -22,6 +22,8 @@ local S3={
  -- so if you change them, also update the math.
  NCLIP=0.1,
  FCLIP=1000,
+ -- Viewport (left, top, right, bottom)
+ VP_L=0,VP_T=0,VP_R=239,VP_B=106,
  -- min/max world Y coord of all walls
  FLOOR_Y=0,
  CEIL_Y=50,
@@ -246,8 +248,7 @@ function S3Rend()
 end
 
 function _S3ResetHbuf(hbuf)
- local scrw,scrh=SCRW,SCRH
- for x=0,scrw-1 do
+ for x=S3.VP_L,S3.VP_R do
   -- hbuf is 1-indexed (because Lua)
   hbuf[x+1]=hbuf[x+1] or {}
   local b=hbuf[x+1]
@@ -270,7 +271,7 @@ function _S3ProjWall(w,boty,topy)
   local ltx,lty,ltz=S3Proj(lx,topy,lz)
   local rtx,rty,rtz=S3Proj(rx,topy,rz)
   if rtx<=ltx then return false end  -- cull back side
-  if rtx<0 or ltx>=SCRW then return false end
+  if rtx<S3.VP_L or ltx>S3.VP_R then return false end
   local lbx,lby,lbz=S3Proj(lx,boty,lz)
   local rbx,rby,rbz=S3Proj(rx,boty,rz)
 
@@ -325,7 +326,7 @@ function _S3PrepHbuf(hbuf,walls)
  -- to draw, per screen X coordinate.
  -- Fill in the top and bottom y coord per column as
  -- well.
- for x=0,SCRW-1 do
+ for x=S3.VP_L,S3.VP_R do
   local hb=hbuf[x+1] -- hbuf is 1-indexed
   if hb.wall then
    local w=hb.wall
@@ -336,8 +337,8 @@ function _S3PrepHbuf(hbuf,walls)
 end
 
 function _AddWallToHbuf(hbuf,w)
- local startx=max(0,S3Round(w.slx))
- local endx=min(SCRW-1,S3Round(w.srx))
+ local startx=max(S3.VP_L,S3Round(w.slx))
+ local endx=min(S3.VP_R,S3Round(w.srx))
  local step
  local nclip,fclip=S3.NCLIP,S3.FCLIP
  startx,endx,step=_S3AdjHbufIter(startx,endx)
@@ -356,8 +357,7 @@ function _AddWallToHbuf(hbuf,w)
 end
 
 function _S3RendHbuf(hbuf)
- local scrw=SCRW
- local startx,endx,step=_S3AdjHbufIter(0,scrw-1)
+ local startx,endx,step=_S3AdjHbufIter(S3.VP_L,S3.VP_R)
  for x=startx,endx,step do
   local hb=hbuf[x+1]  -- hbuf is 1-indexed
   local w=hb.wall
@@ -395,7 +395,8 @@ end
 -- Billboards must be rendered from near to far,
 -- before walls.
 function _S3RendBill(b)
- if b.slx<0 and b.srx<0 or b.slx>240 and b.srx>136
+ if b.slx<S3.VP_L and b.srx<S3.VP_L or 
+   b.slx>S3.VP_R and b.srx>S3.VP_R
    then return end
 
  local lx,rx,z=b.slx,b.srx,b.sz
@@ -437,7 +438,7 @@ function _S3RendBills()
  for i=1,#bills do
   local b=bills[i]
   _S3ProjBill(b)
-  if b.slx<240 and b.srx>=0 and
+  if b.slx<=S3.VP_R and b.srx>=S3.VP_L and
     b.sz>nclip and b.sz<fclip then
    _S3BillIns(r,b)  -- potentially visible
   end
@@ -491,7 +492,7 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
  ty=S3Round(ty)
  by=S3Round(by)
  local fogf=_S3FogFact(x,z)
- local aty,aby=max(ty,0),min(by,SCRH-1)
+ local aty,aby=max(ty,S3.VP_T),min(by,S3.VP_B)
  if fogf<=0 then
   -- Shortcut: just a black line
   for y=aty,aby do
@@ -539,7 +540,7 @@ end
 function _S3RendFlats(hbuf)
  local scrw,scrh=SCRW,SCRH
  local ceilC,floorC=S3.ceilC,S3.floorC
- local startx,endx,step=_S3AdjHbufIter(0,scrw-1)
+ local startx,endx,step=_S3AdjHbufIter(S3.VP_L,S3.VP_R)
  for x=startx,endx,step do
   local cby=scrh//2 -- ceiling bottom y
   local fty=scrh//2+1 -- floor top y
@@ -548,10 +549,10 @@ function _S3RendFlats(hbuf)
    cby=min(cby,hb.ty)
    fty=max(fty,hb.by)
   end
-  for y=0,cby do
+  for y=S3.VP_T,cby do
    if not _S3StencilRead(x,y) then pix(x,y,ceilC) end
   end
-  for y=fty,scrh-1 do
+  for y=fty,S3.VP_B do
    if not _S3StencilRead(x,y) then
     pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
    end
