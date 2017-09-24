@@ -791,6 +791,7 @@ function TIC()
  UpdateEnts()
 
  S3Rend()
+ RendHud(false)
 
  print(S3Round(1000/(time()-stime)).."fps")
  print(DEBUGS,4,12)
@@ -809,6 +810,10 @@ function StartLevel(lvlNo)
    if td then AddWalls(c,r,td) end
   end
  end
+
+ -- Fully render hud. Thereafter we only render
+ -- updates to small parts of it.
+ RendHud(true)
 end
 
 -- Add a door (wall w) at col/row.
@@ -1019,6 +1024,19 @@ function EntAdd(etype,x,z)
  e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,tid=e.tid}
  S3BillAdd(e.bill)
  table.insert(G.ents,e)
+end
+
+-- Renders HUD. full: if true do a full render,
+-- if not just update (cheaper).
+function RendHud(full)
+ local HUDY=106
+ if full then
+  rect(0,HUDY,240,136-HUDY,0)
+  -- TODO: render more bg
+ else
+  rect(5,HUDY+8,16,8,1)
+ end
+ print("100",6,HUDY+8)
 end
 
 -- Returns if the given position is valid as a 
