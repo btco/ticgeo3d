@@ -623,7 +623,10 @@ local PLR_CS=20
 local FLOOR_Y=S3.FLOOR_Y
 local CEIL_Y=S3.CEIL_Y
 
-local G={
+-- Transient game state. Resets every time we start
+-- a new level.
+local G=nil  -- deep copied from G_INIT
+local G_INIT={
  -- eye position and yaw
  ex=350, ey=25, ez=350, yaw=30,
  lvlNo=0,  -- level # we're currently playing
@@ -804,14 +807,13 @@ function TIC()
 end
 
 function StartLevel(lvlNo)
+ -- Reset G (game state), resetting it to the initial
+ -- state.
+ G=DeepCopy(G_INIT)
  G.lvlNo=lvlNo
  G.lvl=LVL[lvlNo]
  local lvl=G.lvl
  S3Reset()
- G.doors={}
- G.doorAnim=nil
- G.ents={}
- G.hp=100
 
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
@@ -1079,17 +1081,20 @@ function RotPoint(ox,oz,px,pz,alpha)
  return ox+ux*c-uz*s,oz+uz*c+ux*s
 end
 
--- Overlays (shallowly) the fields of table b over the
+-- Overlays (deeply) the fields of table b over the
 -- fields of table a. So if a={x=1,y=2,z=3} and
 -- b={y=42,foo="bar"}, then this will return:
 -- {x=1,y=42,z=3,foo="bar"}.
 function Overlay(a,b)
- local result={}
- for k,v in pairs(a) do
-  result[k]=v
- end
+ local result=DeepCopy(a)
  for k,v in pairs(b) do
-  result[k]=v
+  if result[k] and type(result[k])=="table" and
+    type(v)=="table" then
+   -- Recursive overlay.
+   result[k]=Overlay(result[k],v)
+  else
+   result[k]=DeepCopy(v)
+  end
  end
  return result
 end
@@ -1108,6 +1113,19 @@ end
 
 function DistToPlr(x,z)
  return DistXZ(x,z,G.ex,G.ez)
+end
+
+function DeepCopy(t)
+ if type(t)~="table" then return t end
+ local r={}
+ for k,v in pairs(t) do
+  if type(v)=="table" then
+   r[k]=DeepCopy(v)
+  else
+   r[k]=v
+  end
+ end
+ return r
 end
 
 Boot()
