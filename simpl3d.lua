@@ -390,29 +390,6 @@ function S3BillAdd(bill)
  table.insert(S3.bills,bill)
 end
 
--- Render a "floating quad", without any depth
--- testing, but with transparency. Writes to
--- the stencil buffer.
--- These are all given in world coordinates:
--- lx,ly,lz,lu,lv: pos and tex coords of left bottom
--- rx,ry,rz,ru,rv: pos and tex coords of right top
--- local S3RendFloat_tmp={}
--- function S3RendStFloat(lx,ly,lz,lu,lv,rx,ry,rz,ru,rv,tid)
---  local w=S3RendFloat_tmp
---  w.lx,w.lz,w.rx,w.rz=lx,lz,rx,rz
---  if not _S3ProjWall(w,ly,ry) then return end
---  local startx,endx,step=_S3AdjHbufIter(
---    S3Round(w.slx),S3Round(w.srx))
---  for x=startx,endx,step do
---   local ty=_S3Interp(w.slx,w.slty,w.srx,w.srty,x)
---   local by=_S3Interp(w.slx,w.slby,w.srx,w.srby,x)
---   local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
---   local baseu=_S3PerspTexU(w.slx,w.slz,w.srx,w.srz,x)
---   local u=_S3Interp(0,lu,1,ru,baseu)
---   _S3RendTexCol(tid,x,ty,by,u,z,lv,rv,0,true)
---  end
--- end
-
 -- Renders eye-aligned billboard. Will test against
 -- and write stencil. Clips against hbuf for depth.
 -- Billboards must be rendered from near to far,
@@ -705,7 +682,8 @@ local YANCH={
 -- default entity params
 --  w,h: entity size in world space
 --  yanch: Y anchor (one of the YANCH.* consts)
---  tid: fixed texture ID
+--  tid: texture ID
+--  data: fields to shallow-copy to entity as-is
 local ECFG_DFLT={
  yanch=YANCH.FLOOR,
 }
@@ -714,6 +692,7 @@ local ECFG={
  [E.ZOMB]={
   w=50,h=50,
   anim=ANIM.ZOMBW,
+  speed=20,
  },
 }
 
@@ -911,13 +890,34 @@ end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
+ -- Copy necessary fields to the billboard object.
+ e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
+ e.bill.w,e.bill.h=e.w,e.h
+ e.bill.tid=e.tid
 end
 
 function UpdateEntAnim(e)
  if e.anim then
   local frs=floor((G.clk-e.ctime)/e.anim.inter)
-  e.bill.tid=e.anim.tids[1+frs%#e.anim.tids]
+  e.tid=e.tids[1+frs%#e.anim.tids]
  end
+end
+
+function EntPursuePlr(e)
+ if not e.speed then return end
+ local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
+ if dist2>250000 then return end
+
+ -- Find the move direction that brings us closest
+ -- to the player.
+ for my=-1,1 do
+  for mx=-1,1 do
+   -- Candidate position:
+   -- TODO/TOT
+   local px,py=G.ex+
+  end
+ end
+
 end
 
 -- Returns the level tile at c,r.
@@ -986,20 +986,16 @@ end
 
 -- Adds an ent of the given type at the given pos.
 function EntAdd(etype,x,z)
- local ecfg=Overlay(ECFG_DFLT,ECFG[etype] or {})
- local y=yanch==YANCH.FLOOR and FLOOR_Y+ecfg.h*0.5
-   or (yanch==YANCH.CEIL and CEIL_Y-ecfg.h*0.5
+ local e=Overlay({},
+   Overlay(ECFG,DFLT,ECFG[etype] or {}))
+ e.x,e.z=x,z
+ e.y=e.yanch==YANCH.FLOOR and FLOOR_Y+e.h*0.5
+   or (e.yanch==YANCH.CEIL and CEIL_Y-e.h*0.5
    or (FLOOR_Y+CEIL_Y)*0.5)
- local tid=ecfg.anim and ecfg.anim.tids[1] or ecfg.tid
- local e={
-  etype=etype,
-  ctime=G.clk,
-  anim=ecfg.anim,
-  bill={
-   x=x,y=y,z=z,
-   w=ecfg.w,h=ecfg.h,
-   tid=tid
- }}
+ e.tid=e.anim and e.anim.tids[1] or e.tid
+ e.etype=etype
+ e.ctime=G.clk
+ e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,tid=e.tid}
  S3BillAdd(e.bill)
  table.insert(G.ents,e)
 end
@@ -1047,6 +1043,14 @@ function Overlay(a,b)
   result[k]=v
  end
  return result
+end
+
+function DistSqXZ(x1,z1,x2,z2)
+ return (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2)
+end
+
+function DistXZ(x1,z1,x2,z2)
+ return sqrt(DistSqXZ(x1,z1,x2,z2))
 end
 
 Boot()
