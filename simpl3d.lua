@@ -653,6 +653,13 @@ local G={
  --   bill: the billboard that represents it
  --   ctime: time when entity was created.
  --   anim: active animation (optional)
+ --   x,y,z: position
+ --   w,h: width,height
+ --   tid: texture id
+ --
+ --  Behavior-related fields:
+ --   pursues: (bool) does it pursue the player?
+ --   speed: speed of motion, if it moves
  ents={}
 }
 
@@ -692,6 +699,7 @@ local ECFG={
  [E.ZOMB]={
   w=50,h=50,
   anim=ANIM.ZOMBW,
+  pursues=true,
   speed=20,
  },
 }
@@ -891,7 +899,7 @@ end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
- if e.etype==E.ZOMB then
+ if e.pursues then
   EntPursuePlr(e)
  end
  -- Copy necessary fields to the billboard object.
@@ -910,7 +918,7 @@ end
 function EntPursuePlr(e)
  if not e.speed then return end
  local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
- if dist2>250000 then return end
+ if dist2<2500 or dist2>250000 then return end
  local dt=G.dt
 
  -- Find the move direction that brings us closest
