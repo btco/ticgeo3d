@@ -663,9 +663,19 @@ local G_INIT={
  --   w,h: width,height
  --   tid: texture id
  --
+ --   attp: current attack phase, nil if not attacking.
+ --   atte: time elapsed in current attack phase.
+ --
  --  Behavior-related fields:
+ --
  --   pursues: (bool) does it pursue the player?
  --   speed: speed of motion, if it moves
+ --
+ --   attacks: (bool) does it attack the player?
+ --   attseq: attack sequence, array of phases, each:
+ --     t: time in seconds,
+ --     tid: texture ID for entity during this phase
+ --     dmg: if true, damage is caused in this phase
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -715,6 +725,12 @@ local ECFG={
   anim=ANIM.ZOMBW,
   pursues=true,
   speed=20,
+  attacks=true,
+  attseq={
+   {t=0.3,tid=448},
+   {t=0.5,tid=324,dmg=true},
+   {t=0.8,tid=320},
+  },
  },
 }
 
@@ -921,9 +937,8 @@ end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
- if e.pursues then
-  EntPursuePlr(e)
- end
+ if e.pursues then EntPursuePlr(e) end
+ if e.attacks then EntAttPlr(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -960,6 +975,37 @@ function EntPursuePlr(e)
  end
  if not bestx then return end
  e.x,e.z=bestx,bestz
+end
+
+function EntAttPlr(e)
+ if not e.att then
+  -- Not attacking. Check if we should attack.
+  local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
+  if dist2>3000 then return end -- too far.
+  -- We should attack.
+  e.origAnim=e.anim
+  e.att=1
+  e.atte=0 -- elapsed
+  e.anim=nil
+ end
+
+ -- Check if we should move to the next attack phase.
+ e.atte=e.atte+G.dt
+ if e.atte>e.attseq[e.att].t then
+  -- Move to next attack phase
+  e.att=e.att+1
+  if e.att>#e.attseq then
+   -- End of attack sequence.
+   e.att=nil
+   e.anim=e.origAnim
+  elseif e.attseq[e.att].dmg then
+   -- Cause damage to player.
+   -- TODO
+  end
+ end
+
+ -- Update TID.
+ if e.att then e.tid=e.attseq[e.att].tid end
 end
 
 -- Returns the level tile at c,r.
