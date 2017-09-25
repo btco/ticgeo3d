@@ -1,3 +1,17 @@
+-- Texture IDs
+TID={
+  STONE=256,     -- stone wall
+  DOOR=260,      -- door
+  CYC_W1=320,    -- cyclops walk 1
+  CYC_ATK=324,   -- cyclops attack
+  CYC_W2=384,    -- cyclops walk 2
+  CYC_PRE=448,   -- cyclops prepare
+  CBOW_N=460,    -- crossbow neutral
+  CBOW_D=492,    -- crossbow drawn
+  CBOW_E=428,    -- crossbow empty
+  ARROW=412,     -- arrow flying
+}
+
 ---------------------------------------------------
 -- S3 "Simple 3D" library
 ---------------------------------------------------
@@ -12,6 +26,7 @@ local SCRW=240
 local SCRH=136
 
 local S3={
+ ---------------------------------------------------
  -- ENGINE CONFIGURATION SECTION
 
  -- If true, interleave frames for performance
@@ -28,8 +43,26 @@ local S3={
  -- light flicker amount (as dist squared)
  FLIC_AMP=1500,
  FLIC_FM=0.003,  -- frequency multiplier
+ -- Texture definitions. Each texture is identified
+ -- by a texture ID, which is the top-left sprite
+ -- where the texture starts. This map is keyed
+ -- by texture ID.
+ TEX={
+  [TID.STONE]={w=32,h=32},
+  [TID.DOOR]={w=32,h=32},
+  [TID.CYC_W1]={w=32,h=32},
+  [TID.CYC_ATK]={w=32,h=32},
+  [TID.CYC_W2]={w=32,h=32},
+  [TID.CYC_PRE]={w=32,h=32},
+  [TID.CBOW_N]={w=32,h=16},
+  [TID.CBOW_D]={w=32,h=16},
+  [TID.CBOW_E]={w=32,h=16},
+  [TID.ARROW]={w=8,h=8},
+ },
  
  ---------------------------------------------------
+ -- ENGINE INTERNALS:
+
  -- eye coordinates (world coords)
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
@@ -105,6 +138,11 @@ local S3={
  --   slx,srx: left/right x screen coord
  --   sty,sby: top/bottom y screen coord
  bills={},
+ -- All overlays (screen space). Each:
+ --   sx,sy: screen position on which to render
+ --   scale: scale factor (integer -- 2, 3, etc)
+ --   tid: texture ID
+ overs={},
 }
 
 function S3Init()
@@ -238,6 +276,9 @@ function S3Rend()
  -- First, prepare the HBUF. We will use it for
  -- clipping.
  _S3PrepHbuf(hbuf,pvs)
+ -- Render overlays before anything else. Write
+ -- stencil.
+ _S3RendOvers()
  -- Now render the billboards BEFORE the walls.
  -- Billboards will write stencil, and will be clipped
  -- by the HBUF.
@@ -393,6 +434,15 @@ function S3BillAdd(bill)
  assert(bill.x and bill.y and bill.z and bill.w and
   bill.h and bill.tid)
  table.insert(S3.bills,bill)
+ return bill
+end
+
+-- Adds a screen-space overlay.
+function S3OverAdd(over)
+ assert(over.sx) assert(over.sy) assert(over.tid)
+ over.scale=over.scale or 1
+ table.insert(S3.overs,over)
+ return over
 end
 
 -- Renders eye-aligned billboard. Will test against
@@ -416,6 +466,31 @@ function _S3RendBill(b)
   if not hb or not hb.wall or hb.z>z then
     local u=_S3Interp(lx,0,rx,1,x)
    _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true)
+  end
+ end
+end
+
+function _S3RendOvers()
+ local overs=S3.overs
+ for i=1,#overs do _S3RendOver(overs[i]) end
+end
+
+function _S3RendOver(o)
+ local td=S3.TEX[o.tid]
+ assert(td)
+ local scale=o.scale
+ local w=td.w*scale
+ local h=td.h*scale
+ local lx,rx=o.sx,o.sx+w-1
+ local startx,endx,step=_S3AdjHbufIter(lx,rx)
+ for x=startx,endx,step do
+  for y=o.sy,o.sy+h-1 do
+   local t=_S3GetTexel(o.tid,(x-lx)//scale,
+     (y-o.sy)//scale)
+   if t>0 then
+    pix(x,y,t)
+    _S3StencilWrite(x,y)
+   end
   end
  end
 end
@@ -496,6 +571,8 @@ end
 function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
  ty=S3Round(ty)
  by=S3Round(by)
+ local td=S3.TEX[tid]
+ assert(td)
  local fogf=_S3FogFact(x,z)
  local aty,aby=max(ty,S3.VP_T),min(by,S3.VP_B)
  if fogf<=0 then
@@ -511,7 +588,7 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
    -- affine texture mapping for the v coord is ok,
    -- since walls are never slanted.
    local v=_S3Interp(ty,v0,by,v1,y)
-   local clr=_S3TexSamp(tid,u,v)
+   local clr=_S3TexSamp(tid,td,u,v)
    if clr~=ck then
     clr=_S3ClrMod(clr,fogf,x,y)
     pix(x,y,clr)
@@ -580,19 +657,24 @@ function _S3Interp(x1,y1,x2,y2,x)
 end
 
 -- Sample texture ID tid at texture coords u,v.
--- The texture ID is just the sprite ID where
--- the texture begins in sprite memory.
-function _S3TexSamp(tid,u,v)
+-- tid: the texture ID
+-- td: the texture defitinion (S3.TEX[tid]).
+-- u,v: texture coordinates.
+function _S3TexSamp(tid,td,u,v)
  -- texture size in pixels
- -- TODO make this variable
- local SX=32
- local SY=32
+ local SX,SY=td.w,td.h
  local tx=floor(u*SX)%SX
  local ty=floor(v*SY)%SY
- local spid=tid+(ty//8)*16+(tx//8)
- tx=tx%8
- ty=ty%8
- return peek4(0x8000+spid*64+ty*8+tx)
+ return _S3GetTexel(tid,tx,ty)
+end
+
+-- Sample texture ID tid at integer texel coordinates
+-- texx,texy.
+function _S3GetTexel(tid,texx,texy)
+ local spid=tid+(texy//8)*16+(texx//8)
+ texx=texx%8
+ texy=texy%8
+ return peek4(0x8000+spid*64+texy*8+texx)
 end
 
 function S3Dot(ax,az,bx,bz)
@@ -696,6 +778,9 @@ local G_INIT={
  --   hp: damage taken (hp)
  --   cd: countdown to end justHurt state.
  justHurt=nil,
+
+ -- overlay representing player's weapon
+ weapOver=nil,
 }
 
 -- sprite numbers
@@ -711,7 +796,7 @@ local E={
 
 -- animations
 local ANIM={
- ZOMBW={inter=0.2,tids={320,384}},
+ ZOMBW={inter=0.2,tids={TID.CYC_W1,TID.CYC_W2}},
 }
 
 -- possible Y anchors for entities
@@ -739,9 +824,9 @@ local ECFG={
   attacks=true,
   dmgMin=5,dmgMax=15,
   attseq={
-   {t=0.3,tid=448},
-   {t=0.5,tid=324,dmg=true},
-   {t=0.8,tid=320},
+   {t=0.3,tid=TID.CYC_PRE},
+   {t=0.5,tid=TID.CYC_ATK,dmg=true},
+   {t=0.8,tid=TID.CYC_W1},
   },
  },
 }
@@ -872,6 +957,9 @@ function StartLevel(lvlNo)
  -- Fully render hud. Thereafter we only render
  -- updates to small parts of it.
  RendHud(true)
+
+ -- Create weapon overlay.
+ G.weapOver=S3OverAdd({sx=84,sy=94,tid=460,scale=2})
 end
 
 -- Initializes palette.
