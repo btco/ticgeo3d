@@ -795,6 +795,7 @@ function Boot()
  --S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
  --S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
  EntAdd(E.ZOMB,350,200)
+ EntAdd(E.ZOMB,450,170)
 end
 
 function TIC()
@@ -843,6 +844,7 @@ function UpdateJustHurt()
  G.justHurt.cd=G.justHurt.cd-G.dt
  if G.justHurt.cd<0 then
   PalSet()
+  G.justHurt=nil
   return
  end
 end
