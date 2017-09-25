@@ -12,19 +12,11 @@ local SCRW=240
 local SCRH=136
 
 local S3={
- -- eye coordinates (world coords)
- ex=0, ey=0, ez=0, yaw=0,
- -- Precomputed from ex,ey,ez,yaw:
- cosMy=0, sinMy=0, termA=0, termB=0,
- -- Clock (in frames).
- t=0,
+ -- ENGINE CONFIGURATION SECTION
+
  -- If true, interleave frames for performance
  -- (each frame alternates drawing odd/even cols).
  ILEAVE=true,
- -- These are hard-coded into the projection function,
- -- so if you change them, also update the math.
- NCLIP=0.1,
- FCLIP=1000,
  -- Viewport (left, top, right, bottom)
  VP_L=0,VP_T=0,VP_R=239,VP_B=119,
  -- min/max world Y coord of all walls
@@ -36,6 +28,18 @@ local S3={
  -- light flicker amount (as dist squared)
  FLIC_AMP=1500,
  FLIC_FM=0.003,  -- frequency multiplier
+ 
+ ---------------------------------------------------
+ -- eye coordinates (world coords)
+ ex=0, ey=0, ez=0, yaw=0,
+ -- Precomputed from ex,ey,ez,yaw:
+ cosMy=0, sinMy=0, termA=0, termB=0,
+ -- Clock (in frames).
+ t=0,
+ -- These are hard-coded into the projection function,
+ -- so if you change them, also update the math.
+ NCLIP=0.1,
+ FCLIP=1000,
  -- list of all walls, each with
  --
  --  lx,lz,rx,rz: x,z coords of left and right endpts
@@ -231,8 +235,6 @@ end
 function S3Rend()
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
- -- For an explanation of the rendering, see: https://docs.google.com/document/d/1do-iPbUHS2RF-lJAkPX98MsT9ZK5d5sBaJmekU1bZQU/edit#bookmark=id.7tkdwb6fk7e2
-
  -- First, prepare the HBUF. We will use it for
  -- clipping.
  _S3PrepHbuf(hbuf,pvs)
