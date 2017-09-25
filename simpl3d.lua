@@ -5,6 +5,8 @@
 local sin,cos,PI=math.sin,math.cos,math.pi
 local floor,ceil,sqrt=math.floor,math.ceil,math.sqrt
 local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
+function clamp(x,lo,hi) return max(min(x,hi),lo) end
+
 local SCRW=240
 local SCRH=136
 
@@ -23,7 +25,7 @@ local S3={
  NCLIP=0.1,
  FCLIP=1000,
  -- Viewport (left, top, right, bottom)
- VP_L=0,VP_T=0,VP_R=239,VP_B=106,
+ VP_L=0,VP_T=0,VP_R=239,VP_B=119,
  -- min/max world Y coord of all walls
  FLOOR_Y=0,
  CEIL_Y=50,
@@ -668,6 +670,8 @@ local G_INIT={
 
  -- Player's hitpoints (floating point, 0-100)
  hp=100,
+ -- Ammo.
+ ammo=20,
 
  -- Note: when adding new state fields, also
  -- add code to reset these fields in StartLevel()
@@ -974,7 +978,7 @@ end
 
 -- Returns col,row where the given map page starts.
 function MapPageStart(pg)
- return (pg%8)*30,(pg//8)*16
+ return (pg%8)*30,(pg//8)*17
 end
 
 -- Gets the meta "value" of the given tile, or nil
@@ -1041,14 +1045,26 @@ end
 -- Renders HUD. full: if true do a full render,
 -- if not just update (cheaper).
 function RendHud(full)
- local HUDY=106
+ local HUDY=120
+ local BOXW,BOXH,BOXCLR=14,8,9
+ local HPX,HPY=25,HUDY+6
+ local AMMOX,AMMOY=89,HUDY+6
  if full then
-  rect(0,HUDY,240,136-HUDY,0)
-  -- TODO: render more bg
+  local c0,r0=MapPageStart(63)
+  trace(c0..","..r0)
+  map(c0,r0,30,2,0,HUDY)
  else
-  rect(5,HUDY+8,16,8,1)
+  rect(HPX,HPY,BOXW,BOXH,BOXCLR)
+  rect(AMMOX,AMMOY,BOXW,BOXH,BOXCLR)
  end
- print(G.hp,6,HUDY+8)
+ print(To2Dig(G.hp),HPX+2,HPY+1,15,true)
+ print(To2Dig(G.ammo),AMMOX+2,AMMOY+1,15,true)
+end
+
+function To2Dig(n)
+ n=floor(n)
+ return n<0 and "00" or
+   (n<10 and "0"..n or ((n<100) and n or 99))
 end
 
 -- Returns if the given position is valid as a 
