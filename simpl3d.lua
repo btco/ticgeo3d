@@ -713,6 +713,13 @@ local CEIL_Y=S3.CEIL_Y
 -- Original palette (saved at boot time).
 local ORIG_PAL={}
 
+-- Player attack sequence
+local PLR_ATK={
+ -- Draw phase
+ {tid=TID.CBOW_D,t=0.2,fire=false},
+ {tid=TID.CBOW_E,t=2,fire=true}
+}
+
 -- Transient game state. Resets every time we start
 -- a new level.
 local G=nil  -- deep copied from G_INIT
@@ -781,6 +788,13 @@ local G_INIT={
 
  -- overlay representing player's weapon
  weapOver=nil,
+
+ -- if >0, we're currently attacking and this indicates
+ -- the current attack phase.
+ atk=0,
+ -- If attacking, this is how long we have been in
+ -- the current attack phase.
+ atke=0,
 }
 
 -- sprite numbers
@@ -792,6 +806,7 @@ local S={
 -- entity types
 local E={
  ZOMB=1,
+ ARROW=2,
 }
 
 -- animations
@@ -828,6 +843,12 @@ local ECFG={
    {t=0.5,tid=TID.CYC_ATK,dmg=true},
    {t=0.8,tid=TID.CYC_W1},
   },
+ },
+ [E.ARROW]={
+  w=8,h=8,
+  ttl=2,
+  tid=TID.ARROW,
+  yanch=YANCH.CENTER,
  },
 }
 
@@ -897,8 +918,7 @@ function TIC()
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
 
- local vx=-sin(G.yaw)*fwd
- local vz=-cos(G.yaw)*fwd
+ local vx,vz=PlrFwdVec(fwd)
  MovePlr(PSPD*dt,vx,vz)
 
  if btn(4) then
@@ -916,8 +936,9 @@ function TIC()
  DoorAnimUpdate(dt)
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
- UpdateEnts()
  UpdateJustHurt()
+ UpdatePlrAtk()
+ UpdateEnts()
 
  S3Rend()
  RendHud(false)
@@ -934,6 +955,33 @@ function UpdateJustHurt()
   G.justHurt=nil
   return
  end
+end
+
+function UpdatePlrAtk()
+ if G.atk==0 then
+  if btnp(4) and G.ammo>0 then
+   -- Start shooting.
+   G.ammo=G.ammo-1
+   G.atk=1
+   G.atke=0
+  end
+ else
+  G.atke=G.atke+G.dt
+  if G.atke>PLR_ATK[G.atk].t then
+   -- Go to next attack phase.
+   G.atk=(G.atk+1)%(#PLR_ATK+1)
+   G.atke=0
+   if G.atk>0 and PLR_ATK[G.atk].fire then
+    local dx,dz=PlrFwdVec(4)
+    local arrow=EntAdd(E.ARROW,G.ex+dx,G.ez+dz)
+    arrow.y=G.ey-2
+    arrow.vx,arrow.vz=dx*200,dz*200
+   end
+  end
+ end
+
+ G.weapOver.tid=G.atk==0 and TID.CBOW_N or
+   PLR_ATK[G.atk].tid
 end
 
 function StartLevel(lvlNo)
@@ -1022,7 +1070,7 @@ end
 
 function TryOpenDoor()
  local c0,r0=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
- local pfwdx,pfwdz=-sin(G.yaw),-cos(G.yaw)
+ local pfwdx,pfwdz=PlrFwdVec()
  for c=c0-2,c0+2 do
   for r=r0-2,r0+2 do
    local dx,dz=S3Normalize(c*TSIZE-G.ex,r*TSIZE-G.ez)
@@ -1071,12 +1119,21 @@ function UpdateEnts()
  for i=1,#ents do
   UpdateEnt(ents[i])
  end
+ -- Delete dead entities.
+ for i=#ents,1,-1 do
+  if ents[i].dead then
+   ents[i]=ents[#ents]
+   table.remove(ents)
+  end
+ end
 end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
  if e.pursues then EntPursuePlr(e) end
  if e.attacks then EntAttPlr(e) end
+ if e.ttl then EntApplyTtl(e) end
+ if e.vx and e.vz then EntApplyVel(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -1113,6 +1170,16 @@ function EntPursuePlr(e)
  end
  if not bestx then return end
  e.x,e.z=bestx,bestz
+end
+
+function EntApplyVel(e)
+ e.x=e.x+e.vx*G.dt
+ e.z=e.z+e.vz*G.dt
+end
+
+function EntApplyTtl(e)
+ e.ttl=e.ttl-G.dt
+ if e.ttl<0 then e.dead=true end
 end
 
 function EntAttPlr(e)
@@ -1231,6 +1298,7 @@ function EntAdd(etype,x,z)
  e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,tid=e.tid}
  S3BillAdd(e.bill)
  table.insert(G.ents,e)
+ return e
 end
 
 -- Renders HUD. full: if true do a full render,
@@ -1324,6 +1392,11 @@ end
 
 function DistToPlr(x,z)
  return DistXZ(x,z,G.ex,G.ez)
+end
+
+function PlrFwdVec(scale)
+ scale=scale or 1
+ return -sin(G.yaw)*scale,-cos(G.yaw)*scale
 end
 
 function DeepCopy(t)
