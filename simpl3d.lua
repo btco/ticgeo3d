@@ -132,6 +132,8 @@ local S3={
  --  x,y,z: world position of center
  --  w,h: width and height, world coords
  --  tid: texture ID
+ --  clrO: if not nil, override all non transparent
+ --   pixels with this color.
  --  Computer at render time:
  --   sx,sy,sz: screen coords
  --   sw,sh: width/height in screen coords
@@ -437,6 +439,18 @@ function S3BillAdd(bill)
  return bill
 end
 
+function S3BillDel(bill)
+ local bills=S3.bills
+ for i=1,#bills do
+  if bills[i]==bill then
+   bills[i]=bills[#bills]
+   table.remove(bills)
+   return true
+  end
+ end
+ return false
+end
+
 -- Adds a screen-space overlay.
 function S3OverAdd(over)
  assert(over.sx) assert(over.sy) assert(over.tid)
@@ -465,7 +479,7 @@ function _S3RendBill(b)
   local hb=hbuf[x+1] -- 1-indexed
   if not hb or not hb.wall or hb.z>z then
     local u=_S3Interp(lx,0,rx,1,x)
-   _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true)
+   _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true,b.clrO)
   end
  end
 end
@@ -568,7 +582,10 @@ end
 --   ck: color key (default -1)
 --   wsten: if true, write to stencil buf (default
 --    is false)
-function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
+--   clrO: if not nil, override color (all pixels
+--    will have this color unless transparent).
+function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
+    wsten,clrO)
  ty=S3Round(ty)
  by=S3Round(by)
  local td=S3.TEX[tid]
@@ -590,8 +607,10 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,wsten)
    local v=_S3Interp(ty,v0,by,v1,y)
    local clr=_S3TexSamp(tid,td,u,v)
    if clr~=ck then
-    clr=_S3ClrMod(clr,fogf,x,y)
-    pix(x,y,clr)
+    if not clrO then
+     clr=_S3ClrMod(clr,fogf,x,y)
+    end
+    pix(x,y,clrO or clr)
     if wsten then _S3StencilWrite(x,y) end
    end
   end
@@ -773,6 +792,11 @@ local G_INIT={
  --     t: time in seconds,
  --     tid: texture ID for entity during this phase
  --     dmg: if true, damage is caused in this phase
+ --
+ --   vuln: (bool) does this entity take damage?
+ --   hp: hit points
+ --   hurtT: time when enemy was last hurt
+ --     (for animation)
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -838,6 +862,8 @@ local ECFG={
   speed=20,
   attacks=true,
   dmgMin=5,dmgMax=15,
+  hp=2,
+  vuln=true,
   attseq={
    {t=0.3,tid=TID.CYC_PRE},
    {t=0.5,tid=TID.CYC_ATK,dmg=true},
@@ -938,6 +964,7 @@ function TIC()
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  UpdateJustHurt()
  UpdatePlrAtk()
+ CheckArrowHits()
  UpdateEnts()
 
  S3Rend()
@@ -1122,6 +1149,7 @@ function UpdateEnts()
  -- Delete dead entities.
  for i=#ents,1,-1 do
   if ents[i].dead then
+   S3BillDel(ents[i].bill)
    ents[i]=ents[#ents]
    table.remove(ents)
   end
@@ -1138,6 +1166,10 @@ function UpdateEnt(e)
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
  e.bill.tid=e.tid
+ -- Shift color if just hurt.
+ e.bill.clrO=(e.hurtT and G.clk-e.hurtT<0.1) and
+   14 or nil
+  
 end
 
 function UpdateEntAnim(e)
@@ -1322,6 +1354,38 @@ function RendHud(full)
  if G.justHurt then
   print("-"..G.justHurt.hp,100,10,15,true,2)
  end
+end
+
+-- Checks to see if player arrows hit enemies.
+function CheckArrowHits()
+ local ents=G.ents
+ for i=1,#ents do
+  if ents[i].etype==E.ARROW then
+   CheckArrowHit(ents[i])
+  end
+ end
+end
+
+function CheckArrowHit(arrow)
+ local ents=G.ents
+ for i=1,#ents do
+  if arrow.dead then break end
+  if not ents[i].dead and ents[i].vuln and
+     ArrowHitEnt(arrow,ents[i]) then
+   arrow.dead=true
+   ents[i].hp=ents[i].hp-1
+   ents[i].hurtT=G.clk
+   if ents[i].hp<0 then
+    -- TODO: visual fx
+    ents[i].dead=true
+   end
+  end
+ end
+end
+
+function ArrowHitEnt(arrow,e)
+ local d2=DistSqXZ(arrow.x,arrow.z,e.x,e.z)
+ return d2<(e.w*e.w)
 end
 
 function To2Dig(n)
