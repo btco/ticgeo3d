@@ -5,6 +5,7 @@
 local sin,cos,PI=math.sin,math.cos,math.pi
 local floor,ceil,sqrt=math.floor,math.ceil,math.sqrt
 local min,max,abs,HUGE=math.min,math.max,math.abs,math.huge
+local random=math.random
 function clamp(x,lo,hi) return max(min(x,hi),lo) end
 
 local SCRW=240
@@ -625,6 +626,9 @@ local PLR_CS=20
 local FLOOR_Y=S3.FLOOR_Y
 local CEIL_Y=S3.CEIL_Y
 
+-- Original palette (saved at boot time).
+local ORIG_PAL={}
+
 -- Transient game state. Resets every time we start
 -- a new level.
 local G=nil  -- deep copied from G_INIT
@@ -672,6 +676,8 @@ local G_INIT={
  --   speed: speed of motion, if it moves
  --
  --   attacks: (bool) does it attack the player?
+ --   dmgMin: min damage caused per attack
+ --   dmgMax: max damage caused per attack
  --   attseq: attack sequence, array of phases, each:
  --     t: time in seconds,
  --     tid: texture ID for entity during this phase
@@ -683,8 +689,11 @@ local G_INIT={
  -- Ammo.
  ammo=20,
 
- -- Note: when adding new state fields, also
- -- add code to reset these fields in StartLevel()
+ -- If not nil, player recently took damage.
+ --  Contains:
+ --   hp: damage taken (hp)
+ --   cd: countdown to end justHurt state.
+ justHurt=nil,
 }
 
 -- sprite numbers
@@ -726,6 +735,7 @@ local ECFG={
   pursues=true,
   speed=20,
   attacks=true,
+  dmgMin=5,dmgMax=15,
   attseq={
    {t=0.3,tid=448},
    {t=0.5,tid=324,dmg=true},
@@ -775,6 +785,7 @@ local LVL={
 local DEBUGS=""
 
 function Boot()
+ PalInit()
  S3Init()
 
  -- TEST:
@@ -818,6 +829,7 @@ function TIC()
 
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  UpdateEnts()
+ UpdateJustHurt()
 
  S3Rend()
  RendHud(false)
@@ -826,9 +838,19 @@ function TIC()
  print(DEBUGS,4,12)
 end
 
+function UpdateJustHurt()
+ if not G.justHurt then return end
+ G.justHurt.cd=G.justHurt.cd-G.dt
+ if G.justHurt.cd<0 then
+  PalSet()
+  return
+ end
+end
+
 function StartLevel(lvlNo)
  -- Reset G (game state), resetting it to the initial
  -- state.
+ PalSet()
  G=DeepCopy(G_INIT)
  G.lvlNo=lvlNo
  G.lvl=LVL[lvlNo]
@@ -846,6 +868,30 @@ function StartLevel(lvlNo)
  -- Fully render hud. Thereafter we only render
  -- updates to small parts of it.
  RendHud(true)
+end
+
+-- Initializes palette.
+function PalInit()
+ for c=0,15 do
+  ORIG_PAL[c]={
+   r=peek(0x3fc0+3*c),
+   g=peek(0x3fc0+3*c+1),
+   b=peek(0x3fc0+3*c+2)
+  }
+ end
+end
+
+-- tint: optional, {r,g,b,a} in 0-255 range.
+function PalSet(tint)
+ tint=tint or {r=0,g=0,b=0,a=0}
+ for c=0,15 do
+  local r=_S3Interp(0,ORIG_PAL[c].r,255,tint.r,tint.a)
+  local g=_S3Interp(0,ORIG_PAL[c].g,255,tint.g,tint.a)
+  local b=_S3Interp(0,ORIG_PAL[c].b,255,tint.b,tint.a)
+  poke(0x3fc0+3*c,clamp(S3Round(r),0,255))
+  poke(0x3fc0+3*c+1,clamp(S3Round(g),0,255))
+  poke(0x3fc0+3*c+2,clamp(S3Round(b),0,255))
+ end
 end
 
 -- Add a door (wall w) at col/row.
@@ -1000,12 +1046,19 @@ function EntAttPlr(e)
    e.anim=e.origAnim
   elseif e.attseq[e.att].dmg then
    -- Cause damage to player.
-   -- TODO
+   HurtPlr(random(e.dmgMin,e.dmgMax))
   end
  end
 
  -- Update TID.
  if e.att then e.tid=e.attseq[e.att].tid end
+end
+
+function HurtPlr(hp)
+ -- TODO: detect death
+ G.hp=max(G.hp-hp,0)
+ G.justHurt={hp=hp,cd=0.7}
+ PalSet({r=255,g=0,b=0,a=40})
 end
 
 -- Returns the level tile at c,r.
@@ -1105,6 +1158,10 @@ function RendHud(full)
  end
  print(To2Dig(G.hp),HPX+2,HPY+1,15,true)
  print(To2Dig(G.ammo),AMMOX+2,AMMOY+1,15,true)
+
+ if G.justHurt then
+  print("-"..G.justHurt.hp,100,10,15,true,2)
+ end
 end
 
 function To2Dig(n)
