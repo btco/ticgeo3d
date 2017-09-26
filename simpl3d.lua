@@ -827,10 +827,15 @@ local S={
  META_0=241,
 }
 
--- entity types
+-- entity types. Use the same sprite ID that
+-- represents the entity on the map, to allow
+-- that entity type to be created on map load.
+-- Use values >512 for entities that can't be
+-- on map.
 local E={
- ZOMB=1,
- ARROW=2,
+ ZOMB=32,
+ -- Dynamic ents that don't appear on map:
+ ARROW=1000,
 }
 
 -- animations
@@ -928,8 +933,8 @@ function Boot()
  -- TEST
  --S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
  --S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
- EntAdd(E.ZOMB,350,200)
- EntAdd(E.ZOMB,450,170)
+ --EntAdd(E.ZOMB,350,200)
+ --EntAdd(E.ZOMB,450,170)
 end
 
 function TIC()
@@ -1023,6 +1028,7 @@ function StartLevel(lvlNo)
  G.ex=nil
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
+   local cx,cz=(c+0.5)*TSIZE,(r+0.5)*TSIZE
    local t=LvlTile(c,r)
    local td=TD[t]
    if td then AddWalls(c,r,td) end
@@ -1031,8 +1037,11 @@ function StartLevel(lvlNo)
     assert(lbl)
     if lbl==0 then
      -- Player start pos
-     G.ex,G.ez=c*TSIZE,r*TSIZE
+     G.ex,G.ez=cx,cz
     end
+   end
+   if ECFG[t] then
+    EntAdd(t,cx,cz)
    end
   end
  end
