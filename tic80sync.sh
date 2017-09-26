@@ -3,20 +3,20 @@
 set -e
 trap "echo '*** ERROR.'; exit 1" ERR
 
-L=geo3d.tic
+L=fps80.tic
 STAT_CMD="stat -c %Y"
 
 if [ -d /sdcard ]; then
   echo "Auto-detected platform: Android."
-  R=/sdcard/Android/data/com.nesbox.tic/files/TIC-80/geo3d.tic
+  R=/sdcard/Android/data/com.nesbox.tic/files/TIC-80/fps80.tic
   echo "TIC-80 file: $R"
 elif [ -d /Library ]; then
   echo "Auto-detected platform: MacOSX."
-  R="$HOME/Library/Application Support/com.nesbox.tic/TIC-80/geo3d.tic"
+  R="$HOME/Library/Application Support/com.nesbox.tic/TIC-80/fps80.tic"
   STAT_CMD="stat -f %m"
 elif [ -d /c/Users ]; then
   echo "Auto-detected platform: Windows"
-  R=/c/Users/bruno/AppData/Roaming/com.nesbox.tic/TIC-80/geo3d.tic
+  R=/c/Users/bruno/AppData/Roaming/com.nesbox.tic/TIC-80/fps80.tic
 fi
 
 echo "Local (repo) file:"
