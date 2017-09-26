@@ -736,7 +736,7 @@ local ORIG_PAL={}
 local PLR_ATK={
  -- Draw phase
  {tid=TID.CBOW_D,t=0.2,fire=false},
- {tid=TID.CBOW_E,t=2,fire=true}
+ {tid=TID.CBOW_E,t=0.8,fire=true}
 }
 
 -- Transient game state. Resets every time we start
