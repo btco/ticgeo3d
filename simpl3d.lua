@@ -1385,7 +1385,8 @@ end
 
 function ArrowHitEnt(arrow,e)
  local d2=DistSqXZ(arrow.x,arrow.z,e.x,e.z)
- return d2<(e.w*e.w)
+ local r=0.5*e.w
+ return d2<(r*r)
 end
 
 function To2Dig(n)
