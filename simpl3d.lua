@@ -1020,14 +1020,23 @@ function StartLevel(lvlNo)
  G.lvl=LVL[lvlNo]
  local lvl=G.lvl
  S3Reset()
-
+ G.ex=nil
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
    local t=LvlTile(c,r)
    local td=TD[t]
    if td then AddWalls(c,r,td) end
+   if t==S.FLAG then
+    local lbl=TileLabel(c,r)
+    assert(lbl)
+    if lbl==0 then
+     -- Player start pos
+     G.ex,G.ez=c*TSIZE,r*TSIZE
+    end
+   end
   end
  end
+ assert(G.ex,"Start pos flag not found.")
 
  -- Fully render hud. Thereafter we only render
  -- updates to small parts of it.
@@ -1342,7 +1351,6 @@ function RendHud(full)
  local AMMOX,AMMOY=89,HUDY+6
  if full then
   local c0,r0=MapPageStart(63)
-  trace(c0..","..r0)
   map(c0,r0,30,2,0,HUDY)
  else
   rect(HPX,HPY,BOXW,BOXH,BOXCLR)
