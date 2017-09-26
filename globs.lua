@@ -112,6 +112,7 @@ local S={
 -- on map.
 local E={
  ZOMB=32,
+ POTION=48,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
 }
@@ -119,6 +120,7 @@ local E={
 -- animations
 local ANIM={
  ZOMBW={inter=0.2,tids={TID.CYC_W1,TID.CYC_W2}},
+ POTION={inter=0.2,tids={TID.POTION_1,TID.POTION_2}},
 }
 
 -- possible Y anchors for entities
@@ -158,6 +160,10 @@ local ECFG={
   ttl=2,
   tid=TID.ARROW,
   yanch=YANCH.CENTER,
+ },
+ [E.POTION]={
+  w=16,h=16,
+  anim=ANIM.POTION,
  },
 }
 

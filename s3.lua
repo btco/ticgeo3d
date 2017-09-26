@@ -25,6 +25,9 @@ local TID={
   CBOW_D=492,    -- crossbow drawn
   CBOW_E=428,    -- crossbow empty
   ARROW=412,     -- arrow flying
+  POTION_1=458,  -- healing potion
+  POTION_2=490,
+  AMMO=414,      -- ammo (arrows)
 }
 
 local S3={
@@ -60,6 +63,9 @@ local S3={
   [TID.CBOW_D]={w=32,h=16},
   [TID.CBOW_E]={w=32,h=16},
   [TID.ARROW]={w=8,h=8},
+  [TID.POTION_1]={w=16,h=16},
+  [TID.POTION_2]={w=16,h=16},
+  [TID.AMMO]={w=8,h=8},
  },
  
  ---------------------------------------------------
