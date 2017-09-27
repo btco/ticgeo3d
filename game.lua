@@ -42,7 +42,7 @@ function TIC()
  DoorAnimUpdate(dt)
  UpdateJustHurt()
  UpdatePlrAtk()
- CheckArrowHits()
+ CheckEntHits()
  UpdateEnts()
  Rend()
  print(S3Round(1000/(time()-stime)).."fps")
@@ -115,6 +115,11 @@ function MovePlr(d,vx,vz)
   else break end  -- motion completely blocked
  end
  G.ex,G.ez=ex,ez
+end
+
+function Say(msg)
+ G.msg=msg
+ G.msgCd=1
 end
 
 Boot()

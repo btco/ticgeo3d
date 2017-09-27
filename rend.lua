@@ -26,6 +26,11 @@ function Rend()
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
  RendHud(false)
+
+ if G.msgCd>0 then
+  G.msgCd=G.msgCd-G.dt
+  print(G.msg,8,100)
+ end
 end
 
 -- Renders HUD. full: if true do a full render,

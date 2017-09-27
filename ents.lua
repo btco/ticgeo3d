@@ -16,12 +16,12 @@ function EntAdd(etype,x,z)
  return e
 end
 
--- Checks to see if player arrows hit enemies.
-function CheckArrowHits()
+function CheckEntHits()
  local ents=G.ents
  for i=1,#ents do
-  if ents[i].etype==E.ARROW then
-   CheckArrowHit(ents[i])
+  local e=ents[i]
+  if e.etype==E.ARROW then CheckArrowHit(e)
+  elseif e.etype==E.POTION then CheckPickUp(e)
   end
  end
 end
@@ -39,6 +39,17 @@ function CheckArrowHit(arrow)
     -- TODO: visual fx
     ents[i].dead=true
    end
+  end
+ end
+end
+
+function CheckPickUp(item)
+ if DistSqToPlr(item.x,item.z)<400 then
+  -- Picked up.
+  if item.etype==E.POTION then
+   G.hp=min(99,G.hp+15)
+   Say("Healing potion +15")
+   item.dead=true
   end
  end
 end

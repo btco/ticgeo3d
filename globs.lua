@@ -97,6 +97,10 @@ local G_INIT={
  -- If attacking, this is how long we have been in
  -- the current attack phase.
  atke=0,
+ -- Message to display, nil if none.
+ msg="",
+ -- Count down to stop displaying message.
+ msgCd=0,
 }
 
 -- sprite numbers
