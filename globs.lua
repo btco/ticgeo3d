@@ -233,7 +233,7 @@ local LVL={
  {name="Level Test",pg=1,pgw=1,pgh=1},
 }
 
-local DEBUGS=""
+local DEBUGS=nil
 
 local SND={
  ARROW={sfx=63,note="C-4",dur=6,vol=15,spd=0},

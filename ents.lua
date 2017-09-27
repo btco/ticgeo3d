@@ -10,7 +10,8 @@ function EntAdd(etype,x,z)
  e.tid=e.anim and e.anim.tids[1] or e.tid
  e.etype=etype
  e.ctime=G.clk
- e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,tid=e.tid}
+ e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,
+  tid=e.tid,ent=e}
  S3BillAdd(e.bill)
  table.insert(G.ents,e)
  return e
@@ -29,16 +30,20 @@ end
 
 function CheckArrowHit(arrow)
  local ents=G.ents
- for i=1,#ents do
+ -- only check against visible entities,
+ -- ordered from near to far.
+ local zob=S3.zobills
+ for i=1,#zob do
   if arrow.dead then break end
-  if not ents[i].dead and ents[i].vuln and
-     ArrowHitEnt(arrow,ents[i]) then
+  local e=zob[i].ent
+  if not e.dead and e.vuln and e.vis and
+     ArrowHitEnt(arrow,e) then
    arrow.dead=true
-   ents[i].hp=ents[i].hp-1
-   ents[i].hurtT=G.clk
-   if ents[i].hp<0 then
+   e.hp=e.hp-1
+   e.hurtT=G.clk
+   if e.hp<0 then
     -- TODO: visual fx
-    ents[i].dead=true
+    e.dead=true
     Snd(SND.KILL)
    else
     Snd(SND.HIT)
@@ -79,6 +84,7 @@ function UpdateEnts()
  -- Delete dead entities.
  for i=#ents,1,-1 do
   if ents[i].dead then
+   ents[i].bill.ent=nil  -- break cycle, help GC
    S3BillDel(ents[i].bill)
    ents[i]=ents[#ents]
    table.remove(ents)

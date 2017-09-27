@@ -46,7 +46,6 @@ function TIC()
  UpdateEnts()
  Rend()
  print(S3Round(1000/(time()-stime)).."fps")
- print(DEBUGS,4,12)
 end
 
 function UpdateJustHurt()
