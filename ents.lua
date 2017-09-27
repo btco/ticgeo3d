@@ -21,7 +21,8 @@ function CheckEntHits()
  for i=1,#ents do
   local e=ents[i]
   if e.etype==E.ARROW then CheckArrowHit(e)
-  elseif e.etype==E.POTION then CheckPickUp(e)
+  elseif e.etype==E.POTION or e.etype==E.AMMO then
+   CheckPickUp(e)
   end
  end
 end
@@ -52,6 +53,11 @@ function CheckPickUp(item)
   if item.etype==E.POTION then
    G.hp=min(99,G.hp+15)
    Say("Healing potion +15")
+   item.dead=true
+   Snd(SND.BONUS)
+  elseif item.etype==E.AMMO then
+   G.ammo=min(50,G.ammo+5)
+   Say("Arrows +5")
    item.dead=true
    Snd(SND.BONUS)
   end

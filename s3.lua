@@ -27,7 +27,8 @@ local TID={
   ARROW=412,     -- arrow flying
   POTION_1=458,  -- healing potion
   POTION_2=490,
-  AMMO=414,      -- ammo (arrows)
+  AMMO_1=456,    -- ammo (arrows)
+  AMMO_2=488,
 }
 
 local S3={
@@ -65,7 +66,8 @@ local S3={
   [TID.ARROW]={w=8,h=8},
   [TID.POTION_1]={w=16,h=16},
   [TID.POTION_2]={w=16,h=16},
-  [TID.AMMO]={w=8,h=8},
+  [TID.AMMO_1]={w=16,h=16},
+  [TID.AMMO_2]={w=16,h=16},
  },
  
  ---------------------------------------------------
