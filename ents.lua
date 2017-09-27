@@ -36,7 +36,7 @@ function CheckArrowHit(arrow)
  for i=1,#zob do
   if arrow.dead then break end
   local e=zob[i].ent
-  if not e.dead and e.vuln and e.vis and
+  if not e.dead and e.vuln and e.bill.vis and
      ArrowHitEnt(arrow,e) then
    arrow.dead=true
    e.hp=e.hp-1
