@@ -1,0 +1,3 @@
+* arrow should hit closest enemy, not random.
+* arrow should stop when it hits solid tile so you can't
+  shoot through doors
