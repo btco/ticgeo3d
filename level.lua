@@ -116,6 +116,8 @@ function StartLevel(lvlNo)
 
  -- Create weapon overlay.
  G.weapOver=S3OverAdd({sx=84,sy=94,tid=460,scale=2})
+
+ music(0)
 end
 
 -- Returns the level tile at c,r.
