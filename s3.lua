@@ -157,12 +157,18 @@ local S3={
  --   sw,sh: width/height in screen coords
  --   slx,srx: left/right x screen coord
  --   sty,sby: top/bottom y screen coord
+ --   vis: (bool) true iff any part of this bill
+ --    was visible (rendered to screen) last
+ --    frame.
  bills={},
  -- All overlays (screen space). Each:
  --   sx,sy: screen position on which to render
  --   scale: scale factor (integer -- 2, 3, etc)
  --   tid: texture ID
  overs={},
+ -- Potentially visible billboards, z-ordered
+ -- from near to far. Computed every frame.
+ zobills={},
 }
 
 function S3Init()
@@ -496,8 +502,9 @@ function _S3RendBill(b)
   -- clip against hbuf
   local hb=hbuf[x+1] -- 1-indexed
   if not hb or not hb.wall or hb.z>z then
-    local u=_S3Interp(lx,0,rx,1,x)
-   _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,0,true,b.clrO)
+   local u=_S3Interp(lx,0,rx,1,x)
+   if _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,
+     0,true,b.clrO) then b.vis=true end
   end
  end
 end
@@ -549,6 +556,7 @@ function _S3RendBills()
  local r={}
  for i=1,#bills do
   local b=bills[i]
+  b.vis=false
   _S3ProjBill(b)
   if b.slx<=S3.VP_R and b.srx>=S3.VP_L and
     b.sz>nclip and b.sz<fclip then
@@ -562,6 +570,7 @@ function _S3RendBills()
  for i=1,#r do
   _S3RendBill(r[i])
  end
+ S3.zobills=r
 end
 
 -- Inserts billboard b in list l, keeping l sorted
@@ -602,6 +611,7 @@ end
 --    is false)
 --   clrO: if not nil, override color (all pixels
 --    will have this color unless transparent).
+-- Returns true if any pixels were actually drawn.
 function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
     wsten,clrO)
  ty=S3Round(ty)
@@ -615,9 +625,10 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
   for y=aty,aby do
    if not _S3StencilRead(x,y) then pix(x,y,0) end
   end
-  return
+  return false
  end
  v0,v1,ck=v0 or 0,v1 or 1,ck or -1
+ local drew=false
  for y=aty,aby do
   if not _S3StencilRead(x,y) then
    -- affine texture mapping for the v coord is ok,
@@ -629,10 +640,12 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
      clr=_S3ClrMod(clr,fogf,x,y)
     end
     pix(x,y,clrO or clr)
+    drew=true
     if wsten then _S3StencilWrite(x,y) end
    end
   end
  end
+ return drew
 end
 
 -- Calculates the texture U coordinate for the given screen
