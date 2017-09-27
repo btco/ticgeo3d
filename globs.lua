@@ -118,6 +118,7 @@ local E={
  ZOMB=32,
  POTION=48,
  AMMO=64,
+ DEMON=49,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
 }
@@ -127,6 +128,7 @@ local ANIM={
  ZOMBW={inter=0.2,tids={TID.CYC_W1,TID.CYC_W2}},
  POTION={inter=0.2,tids={TID.POTION_1,TID.POTION_2}},
  AMMO={inter=0.2,tids={TID.AMMO_1,TID.AMMO_2}},
+ DEMON={inter=0.2,tids={TID.DEMON_1,TID.DEMON_2}},
 }
 
 -- possible Y anchors for entities
@@ -159,6 +161,22 @@ local ECFG={
    {t=0.3,tid=TID.CYC_PRE},
    {t=0.5,tid=TID.CYC_ATK,dmg=true},
    {t=0.8,tid=TID.CYC_W1},
+  },
+ },
+ [E.DEMON]={
+  w=20,h=20,
+  yanch=YANCH.CENTER,
+  anim=ANIM.DEMON,
+  pursues=true,
+  speed=40,
+  attacks=true,
+  dmgMin=5,dmgMax=15,
+  hp=2,
+  vuln=true,
+  attseq={
+   {t=0.3,tid=TID.DEMON_PRE},
+   {t=0.5,tid=TID.DEMON_ATK,dmg=true},
+   {t=0.8,tid=TID.DEMON_2},
   },
  },
  [E.ARROW]={

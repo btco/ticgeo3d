@@ -29,6 +29,10 @@ local TID={
   POTION_2=490,
   AMMO_1=456,    -- ammo (arrows)
   AMMO_2=488,
+  DEMON_1=388,   -- flying demon, flying 1
+  DEMON_2=390,   -- flying demon, flying 2
+  DEMON_PRE=420, -- flying demon, prepare
+  DEMON_ATK=422, -- flying demon, attack
 }
 
 local S3={
@@ -68,6 +72,10 @@ local S3={
   [TID.POTION_2]={w=16,h=16},
   [TID.AMMO_1]={w=16,h=16},
   [TID.AMMO_2]={w=16,h=16},
+  [TID.DEMON_1]={w=16,h=16},
+  [TID.DEMON_2]={w=16,h=16},
+  [TID.DEMON_PRE]={w=16,h=16},
+  [TID.DEMON_ATK]={w=16,h=16},
  },
  
  ---------------------------------------------------
