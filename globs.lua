@@ -210,3 +210,13 @@ local LVL={
 }
 
 local DEBUGS=""
+
+local SND={
+ ARROW={sfx=63,note="C-4",dur=6,vol=15,spd=0},
+ HIT={sfx=62,note="E-3",dur=6,vol=15,spd=0},
+ KILL={sfx=62,note="C-2",dur=12,vol=15,spd=-2},
+ BONUS={sfx=61,note="C-4",dur=6,vol=15,spd=-2},
+ HURT={sfx=60,note="C-6",dur=6,vol=15,spd=-2},
+ DOOR={sfx=59,note="C-2",dur=6,vol=15,spd=-1},
+}
+

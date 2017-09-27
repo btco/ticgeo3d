@@ -50,6 +50,7 @@ function DoorOpen(c,r)
  G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
  LvlTile(c,r,0)  -- becomes empty tile
  DoorDel(c,r)
+ Snd(SND.DOOR)
  return true
 end
 

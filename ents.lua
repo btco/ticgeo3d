@@ -38,6 +38,9 @@ function CheckArrowHit(arrow)
    if ents[i].hp<0 then
     -- TODO: visual fx
     ents[i].dead=true
+    Snd(SND.KILL)
+   else
+    Snd(SND.HIT)
    end
   end
  end
@@ -50,6 +53,7 @@ function CheckPickUp(item)
    G.hp=min(99,G.hp+15)
    Say("Healing potion +15")
    item.dead=true
+   Snd(SND.BONUS)
   end
  end
 end
@@ -158,6 +162,7 @@ function EntAttPlr(e)
   elseif e.attseq[e.att].dmg then
    -- Cause damage to player.
    HurtPlr(random(e.dmgMin,e.dmgMax))
+   Snd(SND.HURT)
   end
  end
 

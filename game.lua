@@ -78,6 +78,7 @@ function UpdatePlrAtk()
     local arrow=EntAdd(E.ARROW,G.ex+dx,G.ez+dz)
     arrow.y=G.ey-2
     arrow.vx,arrow.vz=dx*200,dz*200
+    Snd(SND.ARROW)
    end
   end
  end
@@ -120,6 +121,11 @@ end
 function Say(msg)
  G.msg=msg
  G.msgCd=1
+end
+
+function Snd(snd)
+ assert(snd.sfx)
+ sfx(snd.sfx,snd.note,snd.dur,0,snd.vol,snd.spd)
 end
 
 Boot()
