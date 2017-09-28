@@ -34,6 +34,8 @@ local TID={
   DEMON_2=390,   -- flying demon, flying 2
   DEMON_PRE=420, -- flying demon, prepare
   DEMON_ATK=422, -- flying demon, attack
+  KEY_1=440,     -- key (on floor, to pick up)
+  KEY_2=442,
 }
 
 local S3={
@@ -78,6 +80,8 @@ local S3={
   [TID.DEMON_2]={w=16,h=16},
   [TID.DEMON_PRE]={w=16,h=16},
   [TID.DEMON_ATK]={w=16,h=16},
+  [TID.KEY_1]={w=16,h=8},
+  [TID.KEY_2]={w=16,h=8},
  },
  
  ---------------------------------------------------

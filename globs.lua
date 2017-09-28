@@ -119,6 +119,7 @@ local E={
  POTION=48,
  AMMO=64,
  DEMON=49,
+ KEY=65,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
 }
@@ -129,6 +130,7 @@ local ANIM={
  POTION={inter=0.2,tids={TID.POTION_1,TID.POTION_2}},
  AMMO={inter=0.2,tids={TID.AMMO_1,TID.AMMO_2}},
  DEMON={inter=0.2,tids={TID.DEMON_1,TID.DEMON_2}},
+ KEY={inter=0.2,tids={TID.KEY_1,TID.KEY_2}},
 }
 
 -- possible Y anchors for entities
@@ -192,6 +194,10 @@ local ECFG={
  [E.AMMO]={
   w=16,h=16,
   anim=ANIM.AMMO,
+ },
+ [E.KEY]={
+  w=16,h=8,
+  anim=ANIM.KEY,
  },
 }
 
