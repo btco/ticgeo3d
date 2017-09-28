@@ -19,8 +19,8 @@ function TIC()
   TICTitle()
  elseif A.mode==MODE.PLAY then
   TICPlay()
- elseif A.mode==MODE.DYING then
-  TICDying()
+ elseif A.mode==MODE.DEAD then
+  TICDead()
  end
 
  print(S3Round(1000/(time()-stime)).."fps")
@@ -32,9 +32,15 @@ function TICTitle()
  if btnp(4) then StartLevel(1) end
 end
 
-function TICDying()
- -- TODO
- TICPlay()
+function TICDead()
+ Rend()
+ rect(0,50,240,30,0)
+ print("You died.",80,60,15,false,2)
+ if A.mclk>3 then
+  PalSet()
+  SetMode(MODE.TITLE)
+  return
+ end
 end
 
 function TICPlay()
@@ -108,8 +114,15 @@ function UpdatePlrAtk()
 end
 
 function HurtPlr(hp)
- -- TODO: detect death
  G.hp=max(G.hp-hp,0)
+ if G.hp==0 then
+  -- Died.
+  SetMode(MODE.DEAD)
+  music(-1)
+  Snd(SND.DIE)
+  PalSet({r=0,g=0,b=0,a=80})
+  return
+ end
  G.justHurt={hp=hp,cd=0.7}
  PalSet({r=255,g=0,b=0,a=40})
 end

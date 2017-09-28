@@ -187,6 +187,9 @@ function S3Reset()
  S3SetCam(0,0,0,0)
  S3.walls={}
  S3.pvstab={}
+ S3.overs={}
+ S3.bills={}
+ S3.zobills={}
 end
 
 function _S3InitClr()

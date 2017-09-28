@@ -21,7 +21,7 @@ local MODE={
  -- Game modes.
  TITLE=0,  -- title screen.
  PLAY=1,   -- playing level.
- DYING=2,  -- player is dying.
+ DEAD=2,  -- player is dead.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -92,7 +92,7 @@ local G_INIT={
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
- hp=100,
+ hp=50,
  -- Ammo.
  ammo=20,
 
@@ -273,5 +273,6 @@ local SND={
  BONUS={sfx=61,note="C-4",dur=6,vol=15,spd=-2},
  HURT={sfx=60,note="C-6",dur=6,vol=15,spd=-2},
  DOOR={sfx=59,note="C-2",dur=6,vol=15,spd=-1},
+ DIE={sfx=58,note="E-2",dur=30,vol=15,spd=-1},
 }
 
