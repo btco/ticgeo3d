@@ -101,6 +101,9 @@ local G_INIT={
  msg="",
  -- Count down to stop displaying message.
  msgCd=0,
+
+ -- Do we have the key? (That opens locked doors).
+ hasKey=false,
 }
 
 -- sprite numbers
@@ -209,6 +212,8 @@ local TF={
  NSLD=0x10,
  -- tile is a door
  DOOR=0x20,
+ -- locked door.
+ LOCKED=0x40,
 }
 
 -- tile descriptors
@@ -229,10 +234,10 @@ local TD={
  [22]={f=TF.W|TF.DOOR,tid=260},
  [37]={f=TF.N|TF.DOOR,tid=260},
  -- Locked doors
- [8]={f=TF.S|TF.DOOR,tid=264},
- [23]={f=TF.E|TF.DOOR,tid=264},
- [25]={f=TF.W|TF.DOOR,tid=264},
- [40]={f=TF.N|TF.DOOR,tid=264},
+ [8]={f=TF.S|TF.DOOR|TF.LOCKED,tid=264},
+ [23]={f=TF.E|TF.DOOR|TF.LOCKED,tid=264},
+ [25]={f=TF.W|TF.DOOR|TF.LOCKED,tid=264},
+ [40]={f=TF.N|TF.DOOR|TF.LOCKED,tid=264},
 }
 
 local LVL={

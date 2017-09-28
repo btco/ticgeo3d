@@ -46,6 +46,16 @@ function DoorDel(c,r) G.doors[r*240+c]=nil end
 function DoorOpen(c,r)
  local w=DoorAt(c,r)
  if not w then return false end
+ -- If it's a locked door, require key.
+ local t=LvlTile(c,r)
+ trace("door t"..t)
+ if TD[t] and 0~=TD[t].f&TF.LOCKED and
+   not G.hasKey then
+  Say("***You need a key***")
+  trace("req key")
+  return false
+ end
+ trace("Opening door.")
  -- Start door open animation.
  G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
  LvlTile(c,r,0)  -- becomes empty tile

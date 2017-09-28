@@ -22,7 +22,8 @@ function CheckEntHits()
  for i=1,#ents do
   local e=ents[i]
   if e.etype==E.ARROW then CheckArrowHit(e)
-  elseif e.etype==E.POTION or e.etype==E.AMMO then
+  elseif e.etype==E.POTION or e.etype==E.AMMO or
+    e.etype==E.KEY then
    CheckPickUp(e)
   end
  end
@@ -63,6 +64,11 @@ function CheckPickUp(item)
   elseif item.etype==E.AMMO then
    G.ammo=min(50,G.ammo+5)
    Say("Arrows +5")
+   item.dead=true
+   Snd(SND.BONUS)
+  elseif item.etype==E.KEY then
+   G.hasKey=true
+   Say("PICKED UP A KEY.")
    item.dead=true
    Snd(SND.BONUS)
   end
