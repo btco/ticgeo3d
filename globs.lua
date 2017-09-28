@@ -17,14 +17,28 @@ local PLR_ATK={
  {tid=TID.CBOW_E,t=0.8,fire=true}
 }
 
+local MODE={
+ -- Game modes.
+ TITLE=0,  -- title screen.
+ PLAY=1,   -- playing level.
+ DYING=2,  -- player is dying.
+}
+
+-- Permanent game state (doesn't reset on every
+-- level).
+local A={  -- A for "App"
+ mode=MODE.TITLE,
+ mclk=0,   -- time elapsed in current mode
+           -- (resets on mode switch).
+ lftime=-1,  -- last frame time, -1 if none.
+}
+
 -- Transient game state. Resets every time we start
 -- a new level.
 local G=nil  -- deep copied from G_INIT
 local G_INIT={
  -- eye position and yaw
  ex=350, ey=25, ez=350, yaw=30,
- lvlNo=0,  -- level # we're currently playing
- lvl=nil,  -- reference to LVL[lvlNo]
  lftime=-1,  -- last frame time
  clk=0, -- game clock, seconds
 

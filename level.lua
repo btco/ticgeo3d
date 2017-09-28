@@ -129,6 +129,7 @@ function StartLevel(lvlNo)
  G.weapOver=S3OverAdd({sx=84,sy=94,tid=460,scale=2})
 
  music(0)
+ SetMode(MODE.PLAY)
 end
 
 -- Returns the level tile at c,r.

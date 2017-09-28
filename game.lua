@@ -1,25 +1,46 @@
 function Boot()
  PalInit()
  S3Init()
+end
 
- -- TEST:
- StartLevel(1)
-
- -- TEST
- --S3BillAdd({x=350,y=25,z=200,w=50,h=50,tid=320})
- --S3BillAdd({x=400,y=25,z=200,w=50,h=50,tid=324})
- --EntAdd(E.ZOMB,350,200)
- --EntAdd(E.ZOMB,450,170)
+function SetMode(m)
+ A.mode,A.mclk=m,0
 end
 
 function TIC()
  local stime=time()
- local dtmillis=G.lftime and (stime-G.lftime) or 16
+ local dtmillis=A.lftime and (stime-A.lftime) or 16
+ A.lftime=stime
+ A.dt=dtmillis*.001 -- convert to seconds
+ local dt=A.dt
+ A.mclk=A.mclk+dt
+
+ if A.mode==MODE.TITLE then
+  TICTitle()
+ elseif A.mode==MODE.PLAY then
+  TICPlay()
+ elseif A.mode==MODE.DYING then
+  TICDying()
+ end
+
+ print(S3Round(1000/(time()-stime)).."fps")
+end
+
+function TICTitle()
+ cls(3)
+ if btnp(4) then StartLevel(1) end
+end
+
+function TICDying()
+ -- TODO
+ TICPlay()
+end
+
+function TICPlay()
+ G.dt=A.dt
+ G.clk=G.clk+A.dt
  local PSPD=G.PSPD
- G.lftime=stime
- G.dt=dtmillis*.001 -- convert to seconds
  local dt=G.dt
- G.clk=G.clk+dt
  
  local fwd=btn(0) and 1 or btn(1) and -1 or 0
  local right=btn(2) and -1 or btn(3) and 1 or 0
@@ -45,7 +66,6 @@ function TIC()
  CheckEntHits()
  UpdateEnts()
  Rend()
- print(S3Round(1000/(time()-stime)).."fps")
 end
 
 function UpdateJustHurt()
