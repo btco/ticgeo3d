@@ -36,7 +36,7 @@ function TICDead()
  Rend()
  rect(0,50,240,30,0)
  print("You died.",80,60,15,false,2)
- if A.mclk>3 then
+ if A.mclk>5 then
   PalSet()
   SetMode(MODE.TITLE)
   return
