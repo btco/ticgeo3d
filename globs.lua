@@ -110,6 +110,7 @@ local G_INIT={
 local S={
  FLAG=240,
  META_0=241,
+ HUD_KEY=230,
 }
 
 -- entity types. Use the same sprite ID that

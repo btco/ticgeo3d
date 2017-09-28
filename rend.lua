@@ -55,4 +55,7 @@ function RendHud(full)
  if G.justHurt then
   print("-"..G.justHurt.hp,100,10,15,true,2)
  end
+ if G.hasKey then
+  spr(S.HUD_KEY,144,HUDY+8)
+ end
 end
