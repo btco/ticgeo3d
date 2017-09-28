@@ -222,6 +222,11 @@ local TD={
  [20]={f=TF.E|TF.DOOR,tid=260},
  [22]={f=TF.W|TF.DOOR,tid=260},
  [37]={f=TF.N|TF.DOOR,tid=260},
+ -- Locked doors
+ [8]={f=TF.S|TF.DOOR,tid=264},
+ [23]={f=TF.E|TF.DOOR,tid=264},
+ [25]={f=TF.W|TF.DOOR,tid=264},
+ [40]={f=TF.N|TF.DOOR,tid=264},
 }
 
 local LVL={

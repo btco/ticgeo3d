@@ -17,6 +17,7 @@ local SCRH=136
 local TID={
   STONE=256,     -- stone wall
   DOOR=260,      -- door
+  LDOOR=264,     -- locked door
   CYC_W1=320,    -- cyclops walk 1
   CYC_ATK=324,   -- cyclops attack
   CYC_W2=384,    -- cyclops walk 2
@@ -60,6 +61,7 @@ local S3={
  TEX={
   [TID.STONE]={w=32,h=32},
   [TID.DOOR]={w=32,h=32},
+  [TID.LDOOR]={w=32,h=32},
   [TID.CYC_W1]={w=32,h=32},
   [TID.CYC_ATK]={w=32,h=32},
   [TID.CYC_W2]={w=32,h=32},
