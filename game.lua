@@ -27,7 +27,8 @@ function TIC()
 end
 
 function TICTitle()
- cls(3)
+ local c,r=MapPageStart(62)
+ map(c,r,30,17)
  if btnp(4) then StartLevel(1) end
 end
 
