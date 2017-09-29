@@ -73,6 +73,16 @@ function PlrFwdVec(scale)
  return -sin(G.yaw)*scale,-cos(G.yaw)*scale
 end
 
+function V2Mag(x,z)
+ return sqrt(x*x+z*z)
+end
+
+function V2Normalize(x,z)
+ local mag=V2Mag(x,z)
+ if mag>0.001 then return x/mag,z/mag
+ else return 0,0 end
+end
+
 function DeepCopy(t)
  if type(t)~="table" then return t end
  local r={}

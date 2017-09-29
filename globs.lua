@@ -89,6 +89,13 @@ local G_INIT={
  --   hp: hit points
  --   hurtT: time when enemy was last hurt
  --     (for animation)
+ --
+ --   vx,vz: if set, this is the velocity.
+ --
+ --   shoots: if true, shoots player.
+ --   shot: EID of projectile.
+ --   shotInt: interval between successive shots (sec)
+ --   shotSpd: speed of the shot (units/sec)
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -141,6 +148,7 @@ local E={
  SPITTER=50,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
+ FIREBALL=1001,
 }
 
 -- animations
@@ -152,6 +160,8 @@ local ANIM={
  KEY={inter=0.2,tids={TID.KEY_1,TID.KEY_2}},
  SPITTER={inter=0.2,tids={TID.SPITTER_1,
   TID.SPITTER_2}},
+ FIREBALL={inter=0.2,tids={TID.FIREBALL_1,
+  TID.FIREBALL_2}},
 }
 
 -- possible Y anchors for entities
@@ -209,6 +219,10 @@ local ECFG={
   pursues=true,
   speed=40,
   attacks=false,
+  shoots=true,
+  shot=E.FIREBALL,
+  shotInt=1.5,
+  shotSpd=300,
   hp=2,
   vuln=true,
   attseq={
@@ -234,6 +248,12 @@ local ECFG={
  [E.KEY]={
   w=16,h=8,
   anim=ANIM.KEY,
+ },
+ [E.FIREBALL]={
+  w=8,h=8,
+  anim=ANIM.FIREBALL,
+  ttl=2,
+  yanch=YANCH.CENTER,
  },
 }
 

@@ -104,6 +104,7 @@ function UpdateEnt(e)
  if e.attacks then EntAttPlr(e) end
  if e.ttl then EntApplyTtl(e) end
  if e.vx and e.vz then EntApplyVel(e) end
+ if e.shoots then EntShoot(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -111,7 +112,6 @@ function UpdateEnt(e)
  -- Shift color if just hurt.
  e.bill.clrO=(e.hurtT and G.clk-e.hurtT<0.1) and
    14 or nil
-  
 end
 
 function UpdateEntAnim(e)
@@ -187,3 +187,17 @@ function EntAttPlr(e)
  -- Update TID.
  if e.att then e.tid=e.attseq[e.att].tid end
 end
+
+function EntShoot(e)
+ assert(e.shot)
+ assert(e.shotInt)
+ assert(e.shotSpd)
+ -- Countdown to next shot
+ e.shootC=(e.shootC or e.shotInt)-G.dt
+ if e.shootC>0 then return end
+ e.shootC=e.shotInt
+ local vx,vz=V2Normalize(G.ex-e.x,G.ez-e.z)
+ local shot=EntAdd(e.shot,e.x,e.z)
+ shot.vx,shot.vz=vx*e.shotSpd,vz*e.shotSpd
+end
+
