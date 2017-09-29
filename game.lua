@@ -125,6 +125,7 @@ function HurtPlr(hp)
  end
  G.justHurt={hp=hp,cd=0.7}
  PalSet({r=255,g=0,b=0,a=40})
+ Snd(SND.HURT)
 end
 
 -- Moves player, taking care not to collide with

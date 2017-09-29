@@ -100,11 +100,13 @@ end
 
 function UpdateEnt(e)
  UpdateEntAnim(e)
- if e.pursues then EntPursuePlr(e) end
- if e.attacks then EntAttPlr(e) end
- if e.ttl then EntApplyTtl(e) end
- if e.vx and e.vz then EntApplyVel(e) end
- if e.shoots then EntShoot(e) end
+ -- Update behaviors
+ if e.pursues then EntBehPursues(e) end
+ if e.attacks then EntBehAttacks(e) end
+ if e.ttl then EntBehTtl(e) end
+ if e.vx and e.vz then EntBehVel(e) end
+ if e.shoots then EntBehShoots(e) end
+ if e.hurtsPlr then EntBehHurtsPlr(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -121,7 +123,7 @@ function UpdateEntAnim(e)
  end
 end
 
-function EntPursuePlr(e)
+function EntBehPursues(e)
  if not e.speed then return end
  local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
  if dist2<2500 or dist2>250000 then return end
@@ -146,17 +148,17 @@ function EntPursuePlr(e)
  e.x,e.z=bestx,bestz
 end
 
-function EntApplyVel(e)
+function EntBehVel(e)
  e.x=e.x+e.vx*G.dt
  e.z=e.z+e.vz*G.dt
 end
 
-function EntApplyTtl(e)
+function EntBehTtl(e)
  e.ttl=e.ttl-G.dt
  if e.ttl<0 then e.dead=true end
 end
 
-function EntAttPlr(e)
+function EntBehAttacks(e)
  if not e.att then
   -- Not attacking. Check if we should attack.
   local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
@@ -180,7 +182,6 @@ function EntAttPlr(e)
   elseif e.attseq[e.att].dmg then
    -- Cause damage to player.
    HurtPlr(random(e.dmgMin,e.dmgMax))
-   Snd(SND.HURT)
   end
  end
 
@@ -188,7 +189,7 @@ function EntAttPlr(e)
  if e.att then e.tid=e.attseq[e.att].tid end
 end
 
-function EntShoot(e)
+function EntBehShoots(e)
  assert(e.shot)
  assert(e.shotInt)
  assert(e.shotSpd)
@@ -199,5 +200,14 @@ function EntShoot(e)
  local vx,vz=V2Normalize(G.ex-e.x,G.ez-e.z)
  local shot=EntAdd(e.shot,e.x,e.z)
  shot.vx,shot.vz=vx*e.shotSpd,vz*e.shotSpd
+end
+
+function EntBehHurtsPlr(e)
+ local d2=DistSqToPlr(e.x,e.z)
+ local r=(e.collRF or 1)*e.w*0.5
+ if d2<r*r then
+  HurtPlr(random(e.dmgMin,e.dmgMax))
+  e.dead=true
+ end
 end
 

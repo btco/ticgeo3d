@@ -96,6 +96,11 @@ local G_INIT={
  --   shot: EID of projectile.
  --   shotInt: interval between successive shots (sec)
  --   shotSpd: speed of the shot (units/sec)
+ --
+ --   hurtsPlr: if true, hurts player on contact.
+ --   dmgMin,dmgMax: min/max damage caused.
+ --   collRF: collision radius factor (1 = use width
+ --    2 = 2*width, etc)
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -222,7 +227,7 @@ local ECFG={
   shoots=true,
   shot=E.FIREBALL,
   shotInt=1.5,
-  shotSpd=300,
+  shotSpd=250,
   hp=2,
   vuln=true,
   attseq={
@@ -254,6 +259,7 @@ local ECFG={
   anim=ANIM.FIREBALL,
   ttl=2,
   yanch=YANCH.CENTER,
+  hurtsPlr=true, dmgMin=5, dmgMax=15,collRF=3,
  },
 }
 
