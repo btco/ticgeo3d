@@ -36,6 +36,12 @@ local TID={
   DEMON_ATK=422, -- flying demon, attack
   KEY_1=440,     -- key (on floor, to pick up)
   KEY_2=442,
+  SPITTER_1=452,   -- fire spitting demon
+  SPITTER_2=454,   --
+  SPITTER_PRE=484, -- preparing to shoot
+  SPITTER_ATK=488, -- shooting
+  FIREBALL_1=392,
+  FIREBALL_2=394,
 }
 
 local S3={
@@ -82,6 +88,12 @@ local S3={
   [TID.DEMON_ATK]={w=16,h=16},
   [TID.KEY_1]={w=16,h=8},
   [TID.KEY_2]={w=16,h=8},
+  [TID.SPITTER_1]={w=16,h=16},
+  [TID.SPITTER_2]={w=16,h=16},
+  [TID.SPITTER_PRE]={w=16,h=16},
+  [TID.SPITTER_ATK]={w=16,h=16},
+  [TID.FIREBALL_1]={w=16,h=16},
+  [TID.FIREBALL_2]={w=16,h=16},
  },
  
  ---------------------------------------------------

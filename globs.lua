@@ -138,6 +138,7 @@ local E={
  AMMO=64,
  DEMON=49,
  KEY=65,
+ SPITTER=50,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
 }
@@ -149,6 +150,8 @@ local ANIM={
  AMMO={inter=0.2,tids={TID.AMMO_1,TID.AMMO_2}},
  DEMON={inter=0.2,tids={TID.DEMON_1,TID.DEMON_2}},
  KEY={inter=0.2,tids={TID.KEY_1,TID.KEY_2}},
+ SPITTER={inter=0.2,tids={TID.SPITTER_1,
+  TID.SPITTER_2}},
 }
 
 -- possible Y anchors for entities
@@ -197,6 +200,21 @@ local ECFG={
    {t=0.3,tid=TID.DEMON_PRE},
    {t=0.5,tid=TID.DEMON_ATK,dmg=true},
    {t=0.8,tid=TID.DEMON_2},
+  },
+ },
+ [E.SPITTER]={
+  w=20,h=20,
+  yanch=YANCH.CENTER,
+  anim=ANIM.SPITTER,
+  pursues=true,
+  speed=40,
+  attacks=false,
+  hp=2,
+  vuln=true,
+  attseq={
+   {t=0.3,tid=TID.SPITTER_PRE},
+   {t=0.5,tid=TID.SPITTER_ATK,dmg=true},
+   {t=0.8,tid=TID.SPITTER_2},
   },
  },
  [E.ARROW]={
