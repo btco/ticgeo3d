@@ -54,11 +54,6 @@ function TICInstrux()
  print("Strafe",84,66,2)
  print("Open",34,82,14)
  print("Fire",92,82,4)
-
- --print("Strafe",12,66,2)
- --print("Strafe",92,82,2)
- --print("Open",34,82,14)
- --print("Fire",84,66,4)
  print("Move",153,90,2)
  if Blink(0.5) then
   print("- Press FIRE to continue -",50,120,4)
@@ -136,6 +131,13 @@ function UpdatePlrAtk()
     Snd(SND.ARROW)
    end
   end
+ end
+
+ if btnp(BTN.OPEN) and G.clk-G.lastGrenT>2 then
+  local dx,dz=PlrFwdVec(4)
+  local gren=EntAdd(E.GREN,G.ex+dx,G.ez+dz)
+  gren.y=G.ey-2
+  gren.vx,gren.vz=dx*50,dz*50
  end
 
  G.weapOver.tid=G.atk==0 and TID.CBOW_N or

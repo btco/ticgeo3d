@@ -114,6 +114,10 @@ local G_INIT={
  hp=50,
  -- Ammo.
  ammo=20,
+ grens=5,
+
+ -- time, as per G.clk when plr last threw grenade
+ lastGrenT=0,
 
  -- If not nil, player recently took damage.
  --  Contains:
@@ -161,6 +165,7 @@ local E={
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
+ GREN=1002,
 }
 
 -- animations
@@ -268,6 +273,12 @@ local ECFG={
   yanch=YANCH.CENTER,
   hurtsPlr=true, dmgMin=5, dmgMax=15,collRF=3,
  },
+ [E.GREN]={
+  w=8,h=8,
+  tid=TID.GREN,
+  ttl=2,
+  yanch=YANCH.CENTER,
+ }
 }
 
 -- tile flags
