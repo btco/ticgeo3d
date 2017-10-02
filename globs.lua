@@ -16,8 +16,9 @@ local ORIG_PAL={}
 
 -- Buttons
 local BTN={
- FWD=0, BACK=1, LEFT=2, RIGHT=3, OPEN=4, FIRE=5,
- STRAFE_L=6, STRAFE_R=7,
+ FWD=0, BACK=1, LEFT=2, RIGHT=3,
+ FIRE=4, LOB=5,
+ STRAFE=6, OPEN=7,
 }
 
 -- Player attack sequence

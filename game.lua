@@ -49,14 +49,19 @@ function TICInstrux()
  local c,r=MapPageStart(61)
  cls(0)
  map(c,r,30,17)
- print("CONTROLS",100,10,15)
- print("Strafe",12,66,2)
- print("Strafe",84,66,2)
- print("Open",34,82,14)
- print("Fire",92,82,4)
- print("Move",153,90,2)
+ print("CONTROLS",100,10,8)
+
+ local X=88
+ local Y=32
+ print("Strafe",X,Y,3)
+ print("Open/Use",X,Y+16,3)
+ print("Grenade",X,Y+48,14)
+ print("FIRE",X,Y+64,4)
+
+ print("Move",168,96,15)
+
  if Blink(0.5) then
-  print("- Press FIRE to continue -",50,120,4)
+  print("- Press FIRE to continue -",50,124,4)
  end
  if btnp(BTN.FIRE) then StartLevel(1) end
 end
@@ -75,18 +80,15 @@ function TICPlay()
  local vx,vz=PlrFwdVec(fwd)
  MovePlr(PSPD*dt,vx,vz)
 
- local straf=btn(BTN.STRAFE_L) and -1 or
-   btn(BTN.STRAFE_R) and 1 or 0
-
- if straf~=0 then
+ if btn(BTN.STRAFE) then
   -- strafe
-  vx=-math.sin(G.yaw-1.5708)*straf
-  vz=-math.cos(G.yaw-1.5708)*straf
+  vx=-math.sin(G.yaw-1.5708)*right
+  vz=-math.cos(G.yaw-1.5708)*right
   MovePlr(PSPD*dt,vx,vz)
+ else
+  -- Turn.
+  G.yaw=G.yaw-right*G.PASPD*dt
  end
-
- -- Turn.
- G.yaw=G.yaw-right*G.PASPD*dt
 
  -- Try to open a door.
  if btnp(BTN.OPEN) then TryOpenDoor() end
@@ -133,7 +135,7 @@ function UpdatePlrAtk()
   end
  end
 
- if btnp(BTN.OPEN) and G.clk-G.lastGrenT>2 then
+ if btnp(BTN.LOB) and G.clk-G.lastGrenT>2 then
   local dx,dz=PlrFwdVec(4)
   local gren=EntAdd(E.GREN,G.ex+dx,G.ez+dz)
   gren.y=G.ey-2
