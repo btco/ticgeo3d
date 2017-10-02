@@ -10,6 +10,12 @@ local CEIL_Y=S3.CEIL_Y
 -- Original palette (saved at boot time).
 local ORIG_PAL={}
 
+-- Buttons
+local BTN={
+ FWD=0, BACK=1, LEFT=2, RIGHT=3, OPEN=4, FIRE=5,
+ STRAFE_L=6, STRAFE_R=7,
+}
+
 -- Player attack sequence
 local PLR_ATK={
  -- Draw phase
@@ -19,9 +25,10 @@ local PLR_ATK={
 
 local MODE={
  -- Game modes.
- TITLE=0,  -- title screen.
- PLAY=1,   -- playing level.
- DEAD=2,  -- player is dead.
+ TITLE=0,   -- title screen.
+ INSTRUX=1, -- instructions screen.
+ PLAY=2,    -- playing level.
+ DEAD=3,    -- player is dead.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -58,7 +65,7 @@ local G_INIT={
  doorAnim=nil,
 
  -- Player speed (linear and angular)
- PSPD=120,PASPD=1.2,
+ PSPD=120,PASPD=2.0,
  
  -- Entities. Each has:
  --   etype: entity type (E.* constants)

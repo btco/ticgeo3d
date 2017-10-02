@@ -21,6 +21,8 @@ function TIC()
   TICPlay()
  elseif A.mode==MODE.DEAD then
   TICDead()
+ elseif A.mode==MODE.INSTRUX then
+  TICInstrux()
  end
 
  print(S3Round(1000/(time()-stime)).."fps")
@@ -29,7 +31,7 @@ end
 function TICTitle()
  local c,r=MapPageStart(62)
  map(c,r,30,17)
- if btnp(4) then StartLevel(1) end
+ if btnp(BTN.FIRE) then SetMode(MODE.INSTRUX) end
 end
 
 function TICDead()
@@ -43,29 +45,56 @@ function TICDead()
  end
 end
 
+function TICInstrux()
+ local c,r=MapPageStart(61)
+ cls(0)
+ map(c,r,30,17)
+ print("CONTROLS",100,10,15)
+ print("Strafe",12,66,2)
+ print("Strafe",84,66,2)
+ print("Open",34,82,14)
+ print("Fire",92,82,4)
+
+ --print("Strafe",12,66,2)
+ --print("Strafe",92,82,2)
+ --print("Open",34,82,14)
+ --print("Fire",84,66,4)
+ print("Move",153,90,2)
+ if Blink(0.5) then
+  print("- Press FIRE to continue -",50,120,4)
+ end
+ if btnp(BTN.FIRE) then StartLevel(1) end
+end
+
 function TICPlay()
  G.dt=A.dt
  G.clk=G.clk+A.dt
  local PSPD=G.PSPD
  local dt=G.dt
  
- local fwd=btn(0) and 1 or btn(1) and -1 or 0
- local right=btn(2) and -1 or btn(3) and 1 or 0
+ local fwd=btn(BTN.FWD) and 1 or btn(BTN.BACK) and
+   -1 or 0
+ local right=btn(BTN.LEFT) and -1 or btn(BTN.RIGHT)
+   and 1 or 0
 
  local vx,vz=PlrFwdVec(fwd)
  MovePlr(PSPD*dt,vx,vz)
 
- if btn(4) then
+ local straf=btn(BTN.STRAFE_L) and -1 or
+   btn(BTN.STRAFE_R) and 1 or 0
+
+ if straf~=0 then
   -- strafe
-  vx=-math.sin(G.yaw-1.5708)*right
-  vz=-math.cos(G.yaw-1.5708)*right
+  vx=-math.sin(G.yaw-1.5708)*straf
+  vz=-math.cos(G.yaw-1.5708)*straf
   MovePlr(PSPD*dt,vx,vz)
- else
-  G.yaw=G.yaw-right*G.PASPD*dt
  end
 
+ -- Turn.
+ G.yaw=G.yaw-right*G.PASPD*dt
+
  -- Try to open a door.
- if btnp(5) then TryOpenDoor() end
+ if btnp(BTN.OPEN) then TryOpenDoor() end
 
  DoorAnimUpdate(dt)
  UpdateJustHurt()
@@ -87,7 +116,7 @@ end
 
 function UpdatePlrAtk()
  if G.atk==0 then
-  if btnp(4) and G.ammo>0 then
+  if btnp(BTN.FIRE) and G.ammo>0 then
    -- Start shooting.
    G.ammo=G.ammo-1
    G.atk=1

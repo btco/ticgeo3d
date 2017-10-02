@@ -122,3 +122,13 @@ function TileLabel(tc,tr)
  return nil
 end
 
+-- Returns a "blink" function based on the current
+-- mode clock, that remains on and off for the
+-- given durations in seconds.
+function Blink(ondur,offdur,phase)
+ ondur=ondur or 0.2
+ offdur=offdur or ondur
+ phase=phase or 0
+ return ondur>math.fmod(A.mclk,(ondur+offdur))
+end
+
