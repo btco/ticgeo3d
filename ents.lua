@@ -29,27 +29,35 @@ function CheckEntHits()
  end
 end
 
-function CheckArrowHit(arrow)
+-- Figures out what entity was hit by the
+-- given projectile. nil if none.
+function CalcHitTarget(proj)
  local ents=G.ents
  -- only check against visible entities,
  -- ordered from near to far.
  local zob=S3.zobills
  for i=1,#zob do
-  if arrow.dead then break end
   local e=zob[i].ent
   if not e.dead and e.vuln and e.bill.vis and
-     ArrowHitEnt(arrow,e) then
-   arrow.dead=true
-   e.hp=e.hp-1
-   e.hurtT=G.clk
-   if e.hp<0 then
-    -- TODO: visual fx
-    e.dead=true
-    Snd(SND.KILL)
-   else
-    Snd(SND.HIT)
-   end
+     ProjHitEnt(proj,e) then
+   return e
   end
+ end
+ return nil
+end
+
+function CheckArrowHit(arrow)
+ local e=CalcHitTarget(arrow)
+ if not e then return end
+ arrow.dead=true
+ e.hp=e.hp-1
+ e.hurtT=G.clk
+ if e.hp<0 then
+  -- TODO: visual fx
+  e.dead=true
+  Snd(SND.KILL)
+ else
+  Snd(SND.HIT)
  end
 end
 
@@ -75,12 +83,13 @@ function CheckPickUp(item)
  end
 end
 
-function ArrowHitEnt(arrow,e)
- local d2=DistSqXZ(arrow.x,arrow.z,e.x,e.z)
+-- Returns true iff given projectile has
+-- hit the given entity.
+function ProjHitEnt(p,e)
+ local d2=DistSqXZ(p.x,p.z,e.x,e.z)
  local r=0.5*e.w
  return d2<(r*r)
 end
-
 
 function UpdateEnts()
  local ents=G.ents
@@ -107,6 +116,7 @@ function UpdateEnt(e)
  if e.vx and e.vz then EntBehVel(e) end
  if e.shoots then EntBehShoots(e) end
  if e.hurtsPlr then EntBehHurtsPlr(e) end
+ if e.falls then EntBehFalls(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -209,5 +219,12 @@ function EntBehHurtsPlr(e)
   HurtPlr(random(e.dmgMin,e.dmgMax))
   e.dead=true
  end
+end
+
+function EntBehFalls(e)
+ local gacc=e.fallAcc or -150
+ local spd=(e.fallVy0 or 0)+gacc*(G.clk-e.ctime)
+ e.y=e.y+spd*G.dt
+ e.dead=e.dead or e.y<FLOOR_Y
 end
 

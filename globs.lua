@@ -108,6 +108,11 @@ local G_INIT={
  --   dmgMin,dmgMax: min/max damage caused.
  --   collRF: collision radius factor (1 = use width
  --    2 = 2*width, etc)
+ --
+ --   falls: if true, ent falls toward ground with
+ --    gravity.
+ --   fallVy0: initial y speed
+ --   fallAcc: fall acceleration
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -278,6 +283,8 @@ local ECFG={
   tid=TID.GREN,
   ttl=2,
   yanch=YANCH.CENTER,
+  falls=true,
+  fallVy0=40,
  }
 }
 
