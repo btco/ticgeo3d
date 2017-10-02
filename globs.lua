@@ -1,3 +1,7 @@
+-- Debug:
+local D_INVULN=true
+local D_NOENTS=true
+
 -- Tile size in world coords
 local TSIZE=50
 
@@ -146,6 +150,9 @@ local G_INIT={
 
  -- Do we have the key? (That opens locked doors).
  hasKey=false,
+
+ -- Current flash fx, if any
+ flash=nil,
 }
 
 -- sprite numbers
@@ -281,7 +288,6 @@ local ECFG={
  [E.GREN]={
   w=8,h=8,
   tid=TID.GREN,
-  ttl=2,
   yanch=YANCH.CENTER,
   falls=true,
   fallVy0=40,
@@ -333,7 +339,7 @@ local LVL={
  {name="Level Test",pg=1,pgw=1,pgh=1},
 }
 
-local DEBUGS=nil
+DEBUGS=nil
 
 local SND={
  ARROW={sfx=63,note="C-4",dur=6,vol=15,spd=0},

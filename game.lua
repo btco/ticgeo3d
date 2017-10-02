@@ -145,6 +145,7 @@ function UpdatePlrAtk()
 end
 
 function HurtPlr(hp)
+ if D_INVULN then return end
  G.hp=max(G.hp-hp,0)
  if G.hp==0 then
   -- Died.

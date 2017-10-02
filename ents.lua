@@ -67,7 +67,9 @@ function CheckGrenBlast(gren)
  if not e and gren.y>FLOOR_Y then return end
  -- Has hit enemy, or fell on floor.
  gren.dead=true
- -- TODO
+ if G.flash then S3FlashDel(G.flash) end
+ G.flash=S3FlashAdd({x=gren.x,z=gren.z,
+  int=10,fod2=40000})
 end
 
 function CheckPickUp(item)
@@ -102,6 +104,7 @@ end
 
 function UpdateEnts()
  local ents=G.ents
+ UpdateFlash()
  for i=1,#ents do
   UpdateEnt(ents[i])
  end
@@ -113,6 +116,16 @@ function UpdateEnts()
    ents[i]=ents[#ents]
    table.remove(ents)
   end
+ end
+end
+
+function UpdateFlash()
+ local f=G.flash
+ if not f then return end
+ f.int=f.int-30*G.dt
+ if f.int<0 then
+  G.flash=nil
+  S3FlashDel(f)
  end
 end
 
@@ -234,6 +247,5 @@ function EntBehFalls(e)
  local gacc=e.fallAcc or -150
  local spd=(e.fallVy0 or 0)+gacc*(G.clk-e.ctime)
  e.y=e.y+spd*G.dt
- e.dead=e.dead or e.y<FLOOR_Y
 end
 

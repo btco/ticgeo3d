@@ -189,6 +189,12 @@ local S3={
  -- Potentially visible billboards, z-ordered
  -- from near to far. Computed every frame.
  zobills={},
+ -- Flash effects (temporary lights). Each:
+ --   x,z: world coordinates of center
+ --   sx,sz: screen coords (computed on render)
+ --   int: intensity
+ --   fod2: fall off start distance squared
+ flashes={},
 }
 
 function S3Init()
@@ -204,6 +210,7 @@ function S3Reset()
  S3.overs={}
  S3.bills={}
  S3.zobills={}
+ S3.flashes={}
 end
 
 function _S3InitClr()
@@ -320,6 +327,7 @@ function S3Proj(x,y,z)
 end
 
 function S3Rend()
+ _S3PrepFlashes()
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
  -- First, prepare the HBUF. We will use it for
@@ -349,6 +357,14 @@ function _S3ResetHbuf(hbuf)
   local b=hbuf[x+1]
   b.wall=nil
   b.z=HUGE
+ end
+end
+
+function _S3PrepFlashes()
+ for i=#S3.flashes,1,-1 do
+  local f=S3.flashes[i]
+  local unused
+  f.sx,unused,f.sz=S3Proj(f.x,S3.ey,f.z)
  end
 end
 
@@ -506,6 +522,26 @@ function S3OverAdd(over)
  return over
 end
 
+-- Add a flash effect.
+function S3FlashAdd(flash)
+ assert(flash.x)
+ assert(flash.z)
+ assert(flash.int)
+ assert(flash.fod2)
+ table.insert(S3.flashes,flash)
+ return flash
+end
+
+function S3FlashDel(flash)
+ for i=1,#S3.flashes do
+  if S3.flashes[i]==flash then
+   S3.flashes[i]=S3.flashes[#S3.flashes]
+   table.remove(S3.flashes)
+   return
+  end
+ end
+end
+
 -- Renders eye-aligned billboard. Will test against
 -- and write stencil. Clips against hbuf for depth.
 -- Billboards must be rendered from near to far,
@@ -605,19 +641,27 @@ function _S3BillIns(l,b)
  table.insert(l,b)
 end
 
--- Returns the fog factor (0=completely fogged/dark,
+-- Returns the light factor (0=completely dark,
 -- 1=completely lit) for a point at screen pos
 -- sx and screen-space depth sz.
-function _S3FogFact(sx,sz)
+function _S3LightF(sx,sz)
  local FOG_S,FOG_E=S3.FOG_S,S3.FOG_E
- sx=120-sx
- local d2=sx*sx+sz*sz
+ local csx=120-sx -- centered sx
+ local d2=csx*csx+sz*sz
  if S3.FLIC_AMP>0 then
   local f=sin(time()*S3.FLIC_FM)*S3.FLIC_AMP
   d2=d2+f
  end
- return d2<FOG_S and 1 or
+ local f=d2<FOG_S and 1 or
    _S3Interp(FOG_S,1,FOG_E,0,d2)
+ for i=1,#S3.flashes do
+  local flash=S3.flashes[i]
+  local d2f=(flash.sx-sx)*(flash.sx-sx)+
+    (flash.sz-sz)*(flash.sz-sz)
+  local int=_S3Interp(0,flash.int,flash.fod2,0,d2f)
+  f=f+int
+ end
+ return f
 end
 
 -- Renders a vertical column of a texture to
@@ -641,9 +685,9 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
  by=S3Round(by)
  local td=S3.TEX[tid]
  assert(td)
- local fogf=_S3FogFact(x,z)
+ local lf=_S3LightF(x,z)
  local aty,aby=max(ty,S3.VP_T),min(by,S3.VP_B)
- if fogf<=0 then
+ if lf<=0 then
   -- Shortcut: just a black line
   for y=aty,aby do
    if not _S3StencilRead(x,y) then pix(x,y,0) end
@@ -660,7 +704,7 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
    local clr=_S3TexSamp(tid,td,u,v)
    if clr~=ck then
     if not clrO then
-     clr=_S3ClrMod(clr,fogf,x,y)
+     clr=_S3ClrMod(clr,lf,x,y)
     end
     pix(x,y,clrO or clr)
     drew=true
@@ -688,8 +732,8 @@ end
 -- screen coordinates.
 function _S3FlatFact(x,y)
  --local z=2944.57/(68-y)  -- manually calculated
- local z=5000/(68-y)  -- manually calculated
- return _S3FogFact(x,z)
+ local z=5000/(y-68)  -- manually calculated
+ return _S3LightF(x,z)
 end
 
 function _S3RendFlats(hbuf)

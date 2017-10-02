@@ -111,7 +111,7 @@ function StartLevel(lvlNo)
      G.ex,G.ez=cx,cz
     end
    end
-   if ECFG[t] then
+   if not D_NOENTS and ECFG[t] then
     EntAdd(t,cx,cz)
    end
   end

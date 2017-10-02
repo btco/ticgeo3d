@@ -32,7 +32,7 @@ function Rend()
   print(G.msg,8,100)
  end
 
- if DEBUGS then print(4,12,DEBUGS) end
+ if DEBUGS then print(DEBUGS,4,12) end
 end
 
 -- Renders HUD. full: if true do a full render,
