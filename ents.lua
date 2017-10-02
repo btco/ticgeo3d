@@ -22,6 +22,7 @@ function CheckEntHits()
  for i=1,#ents do
   local e=ents[i]
   if e.etype==E.ARROW then CheckArrowHit(e)
+  elseif e.etype==E.GREN then CheckGrenBlast(e)
   elseif e.etype==E.POTION or e.etype==E.AMMO or
     e.etype==E.KEY then
    CheckPickUp(e)
@@ -59,6 +60,14 @@ function CheckArrowHit(arrow)
  else
   Snd(SND.HIT)
  end
+end
+
+function CheckGrenBlast(gren)
+ local e=CalcHitTarget(gren)
+ if not e and gren.y>FLOOR_Y then return end
+ -- Has hit enemy, or fell on floor.
+ gren.dead=true
+ -- TODO
 end
 
 function CheckPickUp(item)
