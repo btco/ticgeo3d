@@ -732,7 +732,7 @@ end
 -- screen coordinates.
 function _S3FlatFact(x,y)
  --local z=2944.57/(68-y)  -- manually calculated
- local z=5000/(y-68)  -- manually calculated
+ local z=3000/(y-68)  -- manually calculated
  return _S3LightF(x,z)
 end
 
