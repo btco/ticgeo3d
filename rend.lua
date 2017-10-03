@@ -42,20 +42,23 @@ function RendHud(full)
  local BOXW,BOXH,BOXCLR=14,8,9
  local HPX,HPY=25,HUDY+6
  local AMMOX,AMMOY=89,HUDY+6
+ local GRENX,GRENY=153,HUDY+6
  if full then
   local c0,r0=MapPageStart(63)
   map(c0,r0,30,2,0,HUDY)
  else
   rect(HPX,HPY,BOXW,BOXH,BOXCLR)
   rect(AMMOX,AMMOY,BOXW,BOXH,BOXCLR)
+  rect(GRENX,GRENY,BOXW,BOXH,BOXCLR)
  end
  print(To2Dig(G.hp),HPX+2,HPY+1,15,true)
  print(To2Dig(G.ammo),AMMOX+2,AMMOY+1,15,true)
+ print(To2Dig(G.grens),GRENX+2,GRENY+1,15,true)
 
  if G.justHurt then
   print("-"..G.justHurt.hp,100,10,15,true,2)
  end
  if G.hasKey then
-  spr(S.HUD_KEY,144,HUDY+8)
+  spr(S.HUD_KEY,26*8,HUDY+8)
  end
 end
