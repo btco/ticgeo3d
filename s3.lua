@@ -42,7 +42,9 @@ local TID={
   SPITTER_ATK=488, -- shooting
   FIREBALL_1=392,
   FIREBALL_2=394,
-  GREN=413,
+  GREN=413,        -- grenade
+  GREN_BOX=398,    -- box of grenades (item to
+                   --  pick up).
 }
 
 local S3={
@@ -96,6 +98,7 @@ local S3={
   [TID.FIREBALL_1]={w=16,h=16},
   [TID.FIREBALL_2]={w=16,h=16},
   [TID.GREN]={w=8,h=8},
+  [TID.GREN_BOX]={w=16,h=16},
  },
  
  ---------------------------------------------------

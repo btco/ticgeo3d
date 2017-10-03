@@ -24,7 +24,7 @@ function CheckEntHits()
   if e.etype==E.ARROW then CheckArrowHit(e)
   elseif e.etype==E.GREN then CheckGrenBlast(e)
   elseif e.etype==E.POTION or e.etype==E.AMMO or
-    e.etype==E.KEY then
+    e.etype==E.KEY or e.etype==E.GREN_BOX then
    CheckPickUp(e)
   end
  end
@@ -83,6 +83,11 @@ function CheckPickUp(item)
   elseif item.etype==E.KEY then
    G.hasKey=true
    Say("PICKED UP A KEY.")
+   item.dead=true
+   Snd(SND.BONUS)
+  elseif item.etype==E.GREN_BOX then
+   G.grens=min(G.grens+3,20)
+   Say("Flame orbs +3")
    item.dead=true
    Snd(SND.BONUS)
   end

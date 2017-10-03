@@ -175,6 +175,7 @@ local E={
  DEMON=49,
  KEY=65,
  SPITTER=50,
+ GREN_BOX=66,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -292,7 +293,11 @@ local ECFG={
   yanch=YANCH.CENTER,
   falls=true,
   fallVy0=40,
- }
+ },
+ [E.GREN_BOX]={
+  w=16,h=16,
+  tid=TID.GREN_BOX,
+ },
 }
 
 -- tile flags
