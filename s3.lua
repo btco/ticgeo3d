@@ -817,11 +817,9 @@ function S3PartsSpawn(cx,cy,cz,spec)
   p.size=spec.size
   table.insert(parts,p)
  end
- trace("after create "..#S3.parts)
 end
 
 function _S3PartsUpdate()
- trace("start of update "..#S3.parts)
  local parts=S3.parts
  local pool=S3.partPool
  local dt=S3.dt
@@ -831,7 +829,6 @@ function _S3PartsUpdate()
   p.ttl=p.ttl-dt
   p.vx,p.vy,p.vz=p.vx+p.ax*dt,p.vy+p.ay*dt,p.vz+p.az*dt
   p.x,p.y,p.z=p.x+p.vx*dt,p.y+p.vy*dt,p.z+p.vz*dt
-  trace("part "..p.x..", "..p.y..", "..p.z)
   if p.ttl<0 or p.y<floorY then
    -- Delete.
    parts[i]=parts[#parts]
@@ -840,7 +837,6 @@ function _S3PartsUpdate()
    table.insert(pool,p)
   end
  end
- trace("end of update "..#S3.parts)
 end
 
 function _S3RendParts()
