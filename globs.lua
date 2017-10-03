@@ -1,6 +1,6 @@
 -- Debug:
-local D_INVULN=true
-local D_NOENTS=true
+local D_INVULN=false
+local D_NOENTS=false
 
 -- Tile size in world coords
 local TSIZE=50
@@ -127,7 +127,7 @@ local G_INIT={
  grens=5,
 
  -- time, as per G.clk when plr last threw grenade
- lastGrenT=0,
+ lastGrenT=-999,
 
  -- If not nil, player recently took damage.
  --  Contains:
@@ -350,5 +350,6 @@ local SND={
  HURT={sfx=60,note="C-6",dur=6,vol=15,spd=-2},
  DOOR={sfx=59,note="C-2",dur=6,vol=15,spd=-1},
  DIE={sfx=58,note="E-2",dur=30,vol=15,spd=-1},
+ BOOM={sfx=57,note="G-3",dur=30,vol=15,spd=-2},
 }
 

@@ -51,7 +51,11 @@ function CheckArrowHit(arrow)
  local e=CalcHitTarget(arrow)
  if not e then return end
  arrow.dead=true
- e.hp=e.hp-1
+ HurtEnt(e,1)
+end
+
+function HurtEnt(e,dmg)
+ e.hp=e.hp-dmg
  e.hurtT=G.clk
  if e.hp<0 then
   -- TODO: visual fx
@@ -60,16 +64,6 @@ function CheckArrowHit(arrow)
  else
   Snd(SND.HIT)
  end
-end
-
-function CheckGrenBlast(gren)
- local e=CalcHitTarget(gren)
- if not e and gren.y>FLOOR_Y then return end
- -- Has hit enemy, or fell on floor.
- gren.dead=true
- if G.flash then S3FlashDel(G.flash) end
- G.flash=S3FlashAdd({x=gren.x,z=gren.z,
-  int=10,fod2=40000})
 end
 
 function CheckPickUp(item)
@@ -117,6 +111,25 @@ function UpdateEnts()
    table.remove(ents)
   end
  end
+end
+
+function CheckGrenBlast(gren)
+ local e=CalcHitTarget(gren)
+ if not e and gren.y>FLOOR_Y then return end
+ -- Has hit enemy, or fell on floor.
+ gren.dead=true
+ if G.flash then S3FlashDel(G.flash) end
+ G.flash=S3FlashAdd({x=gren.x,z=gren.z,
+  int=10,fod2=40000})
+ -- Hurt all enemies in blast radius.
+ for i=1,#G.ents do
+  local e=G.ents[i]
+  if e.vuln and e.hp then
+   local d2=DistSqXZ(e.x,e.z,gren.x,gren.z)
+   if d2<40000 then HurtEnt(e,4) end
+  end
+ end
+ Snd(SND.BOOM)
 end
 
 function UpdateFlash()

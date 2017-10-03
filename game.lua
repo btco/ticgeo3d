@@ -135,7 +135,8 @@ function UpdatePlrAtk()
   end
  end
 
- if btnp(BTN.LOB) and G.clk-G.lastGrenT>2 then
+ if btnp(BTN.LOB) and G.clk-G.lastGrenT>1 then
+  G.lastGrenT=G.clk
   local dx,dz=PlrFwdVec(4)
   local gren=EntAdd(E.GREN,G.ex+dx,G.ez+dz)
   gren.y=G.ey-2
