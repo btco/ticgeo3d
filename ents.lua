@@ -61,6 +61,7 @@ function HurtEnt(e,dmg)
   -- TODO: visual fx
   e.dead=true
   Snd(SND.KILL)
+  S3PartsSpawn(e.x,e.y,e.z,PFX.KILL)
  else
   Snd(SND.HIT)
  end
@@ -124,7 +125,7 @@ function CheckGrenBlast(gren)
  -- Hurt all enemies in blast radius.
  for i=1,#G.ents do
   local e=G.ents[i]
-  if e.vuln and e.hp then
+  if e.vuln and e.bill.vis and e.hp then
    local d2=DistSqXZ(e.x,e.z,gren.x,gren.z)
    if d2<40000 then HurtEnt(e,4) end
   end

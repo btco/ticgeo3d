@@ -101,6 +101,9 @@ local S3={
  ---------------------------------------------------
  -- ENGINE INTERNALS:
 
+ -- last frame time as given by time(), nil if not
+ -- computed yet.
+ lastFT=nil,
  -- eye coordinates (world coords)
  ex=0, ey=0, ez=0, yaw=0,
  -- Precomputed from ex,ey,ez,yaw:
@@ -195,6 +198,17 @@ local S3={
  --   int: intensity
  --   fod2: fall off start distance squared
  flashes={},
+ -- Particles. Each:
+ --   x,y,z: position
+ --   vx,vy,vz: velocity
+ --   ax,ay,az: acceleration
+ --   clr: color
+ --   ttl: time to live (seconds)
+ --   size: particle size (1 = single pixel, 2 = 2x2
+ --    square, etc).
+ parts={},
+ -- Particle pool (to avoid reallocation).
+ partPool={},
 }
 
 function S3Init()
@@ -211,6 +225,8 @@ function S3Reset()
  S3.bills={}
  S3.zobills={}
  S3.flashes={}
+ S3.parts={}
+ S3.partPool={}
 end
 
 function _S3InitClr()
@@ -327,6 +343,10 @@ function S3Proj(x,y,z)
 end
 
 function S3Rend()
+ local nowMs=time()
+ S3.dt=S3.lastFT and (0.001*(nowMs-S3.lastFT)) or 16
+ S3.lastFT=nowMs
+
  _S3PrepFlashes()
  local pvs=_S3PvsGet(S3.ex,S3.ez)
  local hbuf=S3.hbuf
@@ -347,6 +367,9 @@ function S3Rend()
  -- by stencil so we don't render over anything
  -- else.
  _S3RendFlats(hbuf)
+ -- Render particle effects.
+ _S3PartsUpdate()
+ _S3RendParts()
  S3.t=S3.t+1
 end
 
@@ -755,6 +778,82 @@ function _S3RendFlats(hbuf)
    if not _S3StencilRead(x,y) then
     pix(x,y,_S3ClrMod(floorC,_S3FlatFact(x,y),x,y))
    end
+  end
+ end
+end
+
+-- Spawns particles around the given position, following
+-- the rules given in the given spec.
+function S3PartsSpawn(cx,cy,cz,spec)
+ assert(spec.count)
+ assert(spec.minR)
+ assert(spec.maxR)
+ assert(spec.minSpd)
+ assert(spec.maxSpd)
+ assert(spec.fall)
+ assert(spec.clr)
+ assert(spec.ttl)
+ assert(spec.size)
+ local parts=S3.parts
+ local pool=S3.partPool
+ for i=1,spec.count do
+  local r=spec.minR+(spec.maxR-spec.minR)*random()
+  local phi=random()*6.28
+  local theta=random()*6.28
+  local p
+  if #pool>0 then
+   p=pool[#pool]
+   table.remove(pool)
+  else p={} end
+  local ux,uy,uz=sin(theta)*cos(phi),
+    sin(theta)*sin(phi),cos(theta)
+  p.x,p.y,p.z=cx+ux*r,cy+uy*r,cz+uz*r
+  local spd=spec.minSpd+
+    (spec.maxSpd-spec.minSpd)*random()
+  p.vx,p.vy,p.vz=ux*spd,uy*spd,uz*spd
+  p.ax,p.ay,p.az=0,(spec.fall and -200 or 0),0
+  p.clr=spec.clr
+  p.ttl=spec.ttl
+  p.size=spec.size
+  table.insert(parts,p)
+ end
+ trace("after create "..#S3.parts)
+end
+
+function _S3PartsUpdate()
+ trace("start of update "..#S3.parts)
+ local parts=S3.parts
+ local pool=S3.partPool
+ local dt=S3.dt
+ local floorY=S3.FLOOR_Y
+ for i=#parts,1,-1 do
+  local p=parts[i]
+  p.ttl=p.ttl-dt
+  p.vx,p.vy,p.vz=p.vx+p.ax*dt,p.vy+p.ay*dt,p.vz+p.az*dt
+  p.x,p.y,p.z=p.x+p.vx*dt,p.y+p.vy*dt,p.z+p.vz*dt
+  trace("part "..p.x..", "..p.y..", "..p.z)
+  if p.ttl<0 or p.y<floorY then
+   -- Delete.
+   parts[i]=parts[#parts]
+   table.remove(parts)
+   -- Return to pool.
+   table.insert(pool,p)
+  end
+ end
+ trace("end of update "..#S3.parts)
+end
+
+function _S3RendParts()
+ local parts=S3.parts
+ local vpL,vpT,vpR,vpB=S3.VP_L,S3.VP_T,S3.VP_R,S3.VP_B
+ local nclip,fclip=S3.NCLIP,S3.FCLIP
+ for i=1,#parts do
+  local p=parts[i]
+  local sx,sy,sz=S3Proj(p.x,p.y,p.z)
+  if sx>vpL and sx+p.size<vpR and sy>=vpT and
+    sy+p.size<vpB and sz>nclip and sz<fclip then
+   if p.size==1 then pix(sx,sy,p.clr)
+   else rect(sx,sy,p.size,p.size,p.clr) end
   end
  end
 end

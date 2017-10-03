@@ -353,3 +353,10 @@ local SND={
  BOOM={sfx=57,note="G-3",dur=30,vol=15,spd=-2},
 }
 
+local PFX={
+ KILL={
+  count=50,minR=5,maxR=20,minSpd=40,maxSpd=100,
+  fall=true,clr=6,ttl=2,size=2,
+ },
+}
+
