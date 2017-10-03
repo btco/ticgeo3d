@@ -355,8 +355,12 @@ local SND={
 
 local PFX={
  KILL={
-  count=50,minR=5,maxR=20,minSpd=40,maxSpd=100,
-  fall=true,clr=6,ttl=2,size=2,
+  count=30,minR=5,maxR=20,minSpd=40,maxSpd=100,
+  fall=true,clr={4,5,6},ttl=2,size=2,
+ },
+ BLAST={
+  count=50,minR=5,maxR=20,minSpd=150,maxSpd=200,
+  fall=true,clr={14,15,11},ttl=2,size=4,
  },
 }
 

@@ -784,6 +784,16 @@ end
 
 -- Spawns particles around the given position, following
 -- the rules given in the given spec.
+-- Spec:
+--   count: how many particles to spawn
+--   minR,maxR: minimum and maximum radius at which
+--     to spawn.
+--   minSpd/maxSpd: min/max particle initial speed
+--   fall: (bool) whether parts fall to ground
+--   clr: color (can be a single color or array)
+--   ttl: how long particles remain alive (seconds)
+--   size: size of particles (1 = one pixel, 2 =
+--     a 2x2 pixel square, etc).
 function S3PartsSpawn(cx,cy,cz,spec)
  assert(spec.count)
  assert(spec.minR)
@@ -812,7 +822,11 @@ function S3PartsSpawn(cx,cy,cz,spec)
     (spec.maxSpd-spec.minSpd)*random()
   p.vx,p.vy,p.vz=ux*spd,uy*spd,uz*spd
   p.ax,p.ay,p.az=0,(spec.fall and -200 or 0),0
-  p.clr=spec.clr
+  if #spec.clr then
+   p.clr=spec.clr[random(1,#spec.clr)]
+  else
+   p.clr=spec.clr
+  end
   p.ttl=spec.ttl
   p.size=spec.size
   table.insert(parts,p)

@@ -131,6 +131,7 @@ function CheckGrenBlast(gren)
   end
  end
  Snd(SND.BOOM)
+ S3PartsSpawn(gren.x,gren.y,gren.z,PFX.BLAST)
 end
 
 function UpdateFlash()
