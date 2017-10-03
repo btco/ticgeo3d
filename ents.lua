@@ -58,7 +58,6 @@ function HurtEnt(e,dmg)
  e.hp=e.hp-dmg
  e.hurtT=G.clk
  if e.hp<0 then
-  -- TODO: visual fx
   e.dead=true
   Snd(SND.KILL)
   S3PartsSpawn(e.x,e.y,e.z,PFX.KILL)

@@ -74,16 +74,31 @@ function DoorAnimUpdate(dt)
  end
 end
 
+-- Gets the tile that the user is facing toward,
+-- the one that can be "interacted" with (e.g.,
+-- open a door). Returns c,r of focus tile, or nil,nil
+-- to indicate there is no focus tile.
+function GetFocusTile()
+ local fx,fz=PlrFwdVec(TSIZE)
+ local c,r=
+   floor((G.ex+fx)/TSIZE),floor((G.ez+fz)/TSIZE)
+ local t=LvlTile(c,r)
+ local td=TD[t]
+ if not td then return nil,nil end
+ -- Only doors can be interacted with for now.
+ if 0==td.f&TF.DOOR then return nil,nil end
+ return c,r
+end
+
+function UpdateFocusTile()
+ G.focC,G.focR=GetFocusTile()
+end
+
 function TryOpenDoor()
- local c0,r0=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
- local pfwdx,pfwdz=PlrFwdVec()
- for c=c0-2,c0+2 do
-  for r=r0-2,r0+2 do
-   local dx,dz=S3Normalize(c*TSIZE-G.ex,r*TSIZE-G.ez)
-   if S3Dot(dx,dz,pfwdx,pfwdz)>0.8 then
-    if DoorOpen(c,r) then return end
-   end
-  end
+ if not G.focC then return end
+ local td=TD[LvlTile(G.focC,G.focR)]
+ if td.f&TF.DOOR~=0 then
+  DoorOpen(G.focC,G.focR)
  end
 end
 

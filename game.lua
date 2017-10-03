@@ -94,6 +94,7 @@ function TICPlay()
  if btnp(BTN.OPEN) then TryOpenDoor() end
 
  DoorAnimUpdate(dt)
+ UpdateFocusTile()
  UpdateJustHurt()
  UpdatePlrAtk()
  CheckEntHits()

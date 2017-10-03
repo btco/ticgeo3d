@@ -154,6 +154,10 @@ local G_INIT={
 
  -- Current flash fx, if any
  flash=nil,
+
+ -- Focused tile (the tile the player will interact
+ -- with when they press the interact key).
+ focC=nil,focR=nil,
 }
 
 -- sprite numbers
