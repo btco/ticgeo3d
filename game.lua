@@ -113,11 +113,15 @@ end
 
 function UpdatePlrAtk()
  if G.atk==0 then
-  if btnp(BTN.FIRE) and G.ammo>0 then
-   -- Start shooting.
-   G.ammo=G.ammo-1
-   G.atk=1
-   G.atke=0
+  if btnp(BTN.FIRE) then
+   if G.ammo>0 then
+    -- Start shooting.
+    G.ammo=G.ammo-1
+    G.atk=1
+    G.atke=0
+   else
+    Say("No arrows left!")
+   end
   end
  else
   G.atke=G.atke+G.dt
@@ -135,15 +139,22 @@ function UpdatePlrAtk()
   end
  end
 
- if btnp(BTN.LOB) and G.clk-G.lastGrenT>1 then
-  G.lastGrenT=G.clk
-  local dx,dz=PlrFwdVec(4)
-  local gren=EntAdd(E.GREN,G.ex+dx,G.ez+dz)
-  gren.y=G.ey-2
-  gren.vx,gren.vz=dx*50,dz*50
+ if btnp(BTN.LOB) then
+  if G.grens>0 and G.clk-G.lastGrenT>1 then
+   G.lastGrenT=G.clk
+   local dx,dz=PlrFwdVec(4)
+   local gren=EntAdd(E.GREN,G.ex+dx,G.ez+dz)
+   gren.y=G.ey-2
+   gren.vx,gren.vz=dx*50,dz*50
+   G.grens=G.grens-1
+  else
+   Say("No flame orbs left!")
+   -- TODO: error sfx
+  end
  end
 
- G.weapOver.tid=G.atk==0 and TID.CBOW_N or
+ G.weapOver.tid=G.atk==0 and
+   (G.ammo>0 and TID.CBOW_N or TID.CBOW_E) or
    PLR_ATK[G.atk].tid
 end
 
