@@ -48,6 +48,7 @@ local TID={
   PILLAR=15,
   LEVER=328,       -- wall with a lever on it
   LEVER_P=332,     -- wall with a lever on it (pulled)
+  GATE=112,
 }
 
 local S3={
@@ -105,6 +106,7 @@ local S3={
   [TID.PILLAR]={w=8,h=32},
   [TID.LEVER]={w=32,h=32},
   [TID.LEVER_P]={w=32,h=32},
+  [TID.GATE]={w=32,h=32},
  },
  
  ---------------------------------------------------

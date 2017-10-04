@@ -4,7 +4,8 @@ function AddWalls(c,r,td)
  local s=TSIZE
  local xw,xe=c*s,(c+1)*s -- x of east and west
  local zn,zs=r*s,(r+1)*s -- z of north and south
- local interest=(0~=td.f&TF.DOOR) or (0~=td.f&TF.LEVER)
+ local interest=(0~=td.f&TF.DOOR) or
+   (0~=td.f&TF.LEVER) or (0~=td.f&TF.GATE)
  if 0~=(td.f&TF.N) then
   -- north wall
   AddWall({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid},
@@ -88,8 +89,8 @@ function GetFocusTile()
  local t=LvlTile(c,r)
  local td=TD[t]
  if not td then return nil,nil end
- if 0~=td.f&TF.DOOR or 0~=td.f&TF.LEVER then
-  return c,r
+ if 0~=td.f&TF.DOOR or 0~=td.f&TF.LEVER or
+   0~=td.f&TF.GATE then return c,r
  else return nil,nil end
 end
 
@@ -153,14 +154,18 @@ end
 -- If newval is given, it will be set as the new
 -- value.
 function LvlTile(c,r,newval)
- if c>=G.lvl.pgw*30 or
-   r>=G.lvl.pgh*17 or c<0 or r<0 then
+ local cols,rows=LvlSize()
+ if c>=cols or r>=rows or c<0 or r<0 then
   return 0
  end
  local c0,r0=MapPageStart(G.lvl.pg)
  local val=mget(c0+c,r0+r)
  if newval then mset(c0+c,r0+r,newval) end
  return val
+end
+
+function LvlSize()
+ return G.lvl.pgw*30,G.lvl.pgh*17
 end
 
 -- Returns the level tile at the given x,z pos.
@@ -170,9 +175,56 @@ function LvlTileAtXz(x,z)
 end
 
 function PullLever(c,r)
- LvlTile(c,r,T.SOLID)  -- becomes solid tile.
  local w=IwallAt(c,r)
  if w then w.tid=TID.LEVER_P end
  -- TODO: sfx
+ -- Open the gate.
+ -- (For now we assume there's a single gate,
+ -- and open it).
+ local cols,rows=LvlSize()
+ local gatec,gater=nil,nil
+ for r=0,rows-1 do
+  for c=0,cols-1 do
+   local t=LvlTile(c,r)
+   if TD[t] and TD[t].f&TF.GATE~=0 then
+    gatec,gater=c,r
+    break
+   end
+  end
+ end
+ -- Remove gate.
+ assert(gatec)
+ local w=IwallAt(gatec,gater)
+ assert(w)
+ IwallDel(gatec,gater)
+ S3WallDel(w)
+ LvlTile(gatec,gater,T.EMPTY)
+ Say("THE GATE OPENED!")
 end
+
+-- Returns the interaction hint for the currently
+-- focused tile.
+function GetInteractHint()
+ local c,r=G.focC,G.focR
+ if not c then return end
+ local hint=nil
+ local td=TD[LvlTile(c,r)]
+ if td.f&TF.DOOR~=0 then
+  if td.f&TF.LOCKED~=0 then
+   if G.hasKey then
+    return "Press S to unlock"
+   else
+    return "You need a key"
+   end
+  else
+   return "Press S to open door"
+  end
+ elseif td.f&TF.LEVER~=0 then
+  return "Press S to activate"
+ elseif td.f&TF.GATE~=0 then
+  return "Gate opens elsewhere!"
+ end
+ return nil
+end
+
 

@@ -66,23 +66,7 @@ end
 
 -- Render the "interaction hint" text.
 function RendHint()
- local c,r=G.focC,G.focR
- if not c then return end
- local hint=nil
- local td=TD[LvlTile(c,r)]
- if td.f&TF.DOOR~=0 then
-  if td.f&TF.LOCKED~=0 then
-   if G.hasKey then
-    hint="Press S to unlock"
-   else
-    hint="You need a key"
-   end
-  else
-   hint="Press S to open door"
-  end
- elseif td.f&TF.LEVER~=0 then
-  hint="Press S to activate"
- end
+ local hint=GetInteractHint()
  if hint then
   local X,Y,W,H=120,5,120,8
   rect(X,Y,W,H,15)

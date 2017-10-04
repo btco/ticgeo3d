@@ -340,6 +340,8 @@ local TF={
  LOCKED=0x40,
  -- lever on wall.
  LEVER=0x80,
+ -- gate
+ GATE=0x100,
 }
 
 -- tile descriptors
@@ -369,6 +371,11 @@ local TD={
  [26]={f=TF.E|TF.LEVER,tid=TID.LEVER},
  [28]={f=TF.W|TF.LEVER,tid=TID.LEVER},
  [43]={f=TF.N|TF.LEVER,tid=TID.LEVER},
+ -- Gate.
+ [53]={f=TF.S|TF.GATE,tid=TID.GATE},
+ [68]={f=TF.E|TF.GATE,tid=TID.GATE},
+ [70]={f=TF.W|TF.GATE,tid=TID.GATE},
+ [85]={f=TF.N|TF.GATE,tid=TID.GATE},
 }
 
 local LVL={
