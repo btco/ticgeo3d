@@ -45,6 +45,7 @@ local TID={
   GREN=413,        -- grenade
   GREN_BOX=398,    -- box of grenades (item to
                    --  pick up).
+  PILLAR=328,
 }
 
 local S3={
@@ -99,6 +100,7 @@ local S3={
   [TID.FIREBALL_2]={w=16,h=16},
   [TID.GREN]={w=8,h=8},
   [TID.GREN_BOX]={w=16,h=16},
+  [TID.PILLAR]={w=8,h=32},
  },
  
  ---------------------------------------------------

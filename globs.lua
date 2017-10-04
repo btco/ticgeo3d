@@ -180,6 +180,7 @@ local E={
  KEY=65,
  SPITTER=50,
  GREN_BOX=66,
+ PILLAR=51,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -301,6 +302,10 @@ local ECFG={
  [E.GREN_BOX]={
   w=16,h=16,
   tid=TID.GREN_BOX,
+ },
+ [E.PILLAR]={
+  w=12,h=50,
+  tid=TID.PILLAR,
  },
 }
 
