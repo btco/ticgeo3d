@@ -54,11 +54,14 @@ local G_INIT={
  lftime=-1,  -- last frame time
  clk=0, -- game clock, seconds
 
- -- All the doors in the level. This is a dict indexed
- -- by r*240+c where c,r are the col/row on the map.
+ -- All the walls of interest (doors and levers) in
+ -- the level, indexed by the tile the are on.
+ -- This is a dict indexed by r*240+c where c,r are
+ -- the col/row on the map.
  -- The value is a reference to the wall that
- -- represents the (closed) door.
- doors={},
+ -- represents the (closed) door or wall with a
+ -- button.
+ iwalls={},
 
  -- If set, a door open animation is in progress
  -- Fields:
@@ -163,6 +166,12 @@ local G_INIT={
  -- Focused tile (the tile the player will interact
  -- with when they press the interact key).
  focC=nil,focR=nil,
+}
+
+-- tile numbers
+local T={
+ EMPTY=0,    -- empty type on map.
+ SOLID=16,   -- solid tile on map.
 }
 
 -- sprite numbers
@@ -337,29 +346,29 @@ local TF={
 -- w: which walls this tile contains
 local TD={
  -- Stone walls
- [1]={f=TF.S|TF.E,tid=256},
- [2]={f=TF.S,tid=256},
- [3]={f=TF.S|TF.W,tid=256},
- [17]={f=TF.E,tid=256},
- [19]={f=TF.W,tid=256},
- [33]={f=TF.N|TF.E,tid=256},
- [34]={f=TF.N,tid=256},
- [35]={f=TF.N|TF.W,tid=256},
+ [1]={f=TF.S|TF.E,tid=TID.STONE},
+ [2]={f=TF.S,tid=TID.STONE},
+ [3]={f=TF.S|TF.W,tid=TID.STONE},
+ [17]={f=TF.E,tid=TID.STONE},
+ [19]={f=TF.W,tid=TID.STONE},
+ [33]={f=TF.N|TF.E,tid=TID.STONE},
+ [34]={f=TF.N,tid=TID.STONE},
+ [35]={f=TF.N|TF.W,tid=TID.STONE},
  -- Doors
- [5]={f=TF.S|TF.DOOR,tid=260},
- [20]={f=TF.E|TF.DOOR,tid=260},
- [22]={f=TF.W|TF.DOOR,tid=260},
- [37]={f=TF.N|TF.DOOR,tid=260},
+ [5]={f=TF.S|TF.DOOR,tid=TID.DOOR},
+ [20]={f=TF.E|TF.DOOR,tid=TID.DOOR},
+ [22]={f=TF.W|TF.DOOR,tid=TID.DOOR},
+ [37]={f=TF.N|TF.DOOR,tid=TID.DOOR},
  -- Locked doors
- [8]={f=TF.S|TF.DOOR|TF.LOCKED,tid=264},
- [23]={f=TF.E|TF.DOOR|TF.LOCKED,tid=264},
- [25]={f=TF.W|TF.DOOR|TF.LOCKED,tid=264},
- [40]={f=TF.N|TF.DOOR|TF.LOCKED,tid=264},
+ [8]={f=TF.S|TF.DOOR|TF.LOCKED,tid=TID.LDOOR},
+ [23]={f=TF.E|TF.DOOR|TF.LOCKED,tid=TID.LDOOR},
+ [25]={f=TF.W|TF.DOOR|TF.LOCKED,tid=TID.LDOOR},
+ [40]={f=TF.N|TF.DOOR|TF.LOCKED,tid=TID.LDOOR},
  -- Wall with switch
- [11]={f=TF.S|TF.LEVER,tid=366},
- [26]={f=TF.E|TF.LEVER,tid=366},
- [28]={f=TF.W|TF.LEVER,tid=366},
- [43]={f=TF.N|TF.LEVER,tid=366},
+ [11]={f=TF.S|TF.LEVER,tid=TID.LEVER},
+ [26]={f=TF.E|TF.LEVER,tid=TID.LEVER},
+ [28]={f=TF.W|TF.LEVER,tid=TID.LEVER},
+ [43]={f=TF.N|TF.LEVER,tid=TID.LEVER},
 }
 
 local LVL={

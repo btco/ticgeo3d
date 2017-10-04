@@ -90,8 +90,8 @@ function TICPlay()
   G.yaw=G.yaw-right*G.PASPD*dt
  end
 
- -- Try to open a door.
- if btnp(BTN.OPEN) then TryOpenDoor() end
+ -- Try to open a door, push a button, etc.
+ if btnp(BTN.OPEN) then Interact() end
 
  DoorAnimUpdate(dt)
  UpdateFocusTile()

@@ -4,47 +4,50 @@ function AddWalls(c,r,td)
  local s=TSIZE
  local xw,xe=c*s,(c+1)*s -- x of east and west
  local zn,zs=r*s,(r+1)*s -- z of north and south
- local isdoor=(0~=td.f&TF.DOOR)
+ local interest=(0~=td.f&TF.DOOR) or (0~=td.f&TF.LEVER)
  if 0~=(td.f&TF.N) then
   -- north wall
   AddWall({lx=xe,rx=xw,lz=zn,rz=zn,tid=td.tid},
-   c,r,isdoor)
+   c,r,interest)
  end
  if 0~=(td.f&TF.S) then
   -- south wall
   AddWall({lx=xw,rx=xe,lz=zs,rz=zs,tid=td.tid},
-   c,r,isdoor)
+   c,r,interest)
  end
  if 0~=(td.f&TF.E) then
   -- east wall
   AddWall({lx=xe,rx=xe,lz=zs,rz=zn,tid=td.tid},
-   c,r,isdoor)
+   c,r,interest)
  end
  if 0~=(td.f&TF.W) then
   -- west wall
   AddWall({lx=xw,rx=xw,lz=zn,rz=zs,tid=td.tid},
-   c,r,isdoor)
+   c,r,interest)
  end
 end
 
-function AddWall(w,c,r,isdoor)
+-- Adds a wall at the given tile.
+-- interest: (bool) whether it's a wall of interest
+--  (door, button, etc).
+function AddWall(w,c,r,interest)
  S3WallAdd(w)
- if isdoor then DoorAdd(c,r,w) end
+ if interest then IwallAdd(c,r,w) end
 end
 
--- Add a door (wall w) at col/row.
-function DoorAdd(c,r,w) G.doors[r*240+c]=w end
+-- Add a wall of interest at col/row.
+function IwallAdd(c,r,w) G.iwalls[r*240+c]=w end
 
--- Looks for a door at the given col,row,
+-- Looks for a wall of interest at the given col,row,
 -- nil if not found.
-function DoorAt(c,r) return G.doors[r*240+c] end
+function IwallAt(c,r) return G.iwalls[r*240+c] end
 
--- Deletes a door at the given col,row.
-function DoorDel(c,r) G.doors[r*240+c]=nil end
+-- Deletes a wall of interest at the given col,row.
+function IwallDel(c,r) G.iwalls[r*240+c]=nil end
 
 -- Opens the door at the given coordinates.
 function DoorOpen(c,r)
- local w=DoorAt(c,r)
+ local w=IwallAt(c,r)
  if not w then return false end
  -- If it's a locked door, require key.
  local t=LvlTile(c,r)
@@ -55,8 +58,8 @@ function DoorOpen(c,r)
  end
  -- Start door open animation.
  G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
- LvlTile(c,r,0)  -- becomes empty tile
- DoorDel(c,r)
+ LvlTile(c,r,T.EMPTY)  -- becomes empty tile
+ IwallDel(c,r)
  Snd(SND.DOOR)
  return true
 end
@@ -85,20 +88,22 @@ function GetFocusTile()
  local t=LvlTile(c,r)
  local td=TD[t]
  if not td then return nil,nil end
- -- Only doors can be interacted with for now.
- if 0==td.f&TF.DOOR then return nil,nil end
- return c,r
+ if 0~=td.f&TF.DOOR or 0~=td.f&TF.LEVER then
+  return c,r
+ else return nil,nil end
 end
 
 function UpdateFocusTile()
  G.focC,G.focR=GetFocusTile()
 end
 
-function TryOpenDoor()
+function Interact()
  if not G.focC then return end
  local td=TD[LvlTile(G.focC,G.focR)]
  if td.f&TF.DOOR~=0 then
   DoorOpen(G.focC,G.focR)
+ elseif td.f&TF.LEVER~=0 then
+  PullLever(G.focC,G.focR)
  end
 end
 
@@ -162,5 +167,12 @@ end
 function LvlTileAtXz(x,z)
  local c,r=floor(x/TSIZE),floor(z/TSIZE)
  return LvlTile(c,r)
+end
+
+function PullLever(c,r)
+ LvlTile(c,r,T.SOLID)  -- becomes solid tile.
+ local w=IwallAt(c,r)
+ if w then w.tid=TID.LEVER_P end
+ -- TODO: sfx
 end
 

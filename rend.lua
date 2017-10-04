@@ -80,6 +80,8 @@ function RendHint()
   else
    hint="Press S to open door"
   end
+ elseif td.f&TF.LEVER~=0 then
+  hint="Press S to activate"
  end
  if hint then
   local X,Y,W,H=120,5,120,8
