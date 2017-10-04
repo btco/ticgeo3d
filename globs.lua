@@ -356,6 +356,15 @@ local TD={
  [33]={f=TF.N|TF.E,tid=TID.STONE},
  [34]={f=TF.N,tid=TID.STONE},
  [35]={f=TF.N|TF.W,tid=TID.STONE},
+ -- Wood walls
+ [55]={f=TF.S|TF.E,tid=TID.WOOD},
+ [56]={f=TF.S,tid=TID.WOOD},
+ [57]={f=TF.S|TF.W,tid=TID.WOOD},
+ [71]={f=TF.E,tid=TID.WOOD},
+ [73]={f=TF.W,tid=TID.WOOD},
+ [87]={f=TF.N|TF.E,tid=TID.WOOD},
+ [88]={f=TF.N,tid=TID.WOOD},
+ [89]={f=TF.N|TF.W,tid=TID.WOOD},
  -- Doors
  [5]={f=TF.S|TF.DOOR,tid=TID.DOOR},
  [20]={f=TF.E|TF.DOOR,tid=TID.DOOR},

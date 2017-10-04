@@ -16,6 +16,7 @@ local SCRH=136
 -- below.
 local TID={
   STONE=256,     -- stone wall
+  WOOD=116,      -- wood wall
   DOOR=260,      -- door
   LDOOR=264,     -- locked door
   CYC_W1=320,    -- cyclops walk 1
@@ -75,6 +76,7 @@ local S3={
  -- by texture ID.
  TEX={
   [TID.STONE]={w=32,h=32},
+  [TID.WOOD]={w=32,h=32},
   [TID.DOOR]={w=32,h=32},
   [TID.LDOOR]={w=32,h=32},
   [TID.CYC_W1]={w=32,h=32},
