@@ -158,3 +158,9 @@ function LvlTile(c,r,newval)
  return val
 end
 
+-- Returns the level tile at the given x,z pos.
+function LvlTileAtXz(x,z)
+ local c,r=floor(x/TSIZE),floor(z/TSIZE)
+ return LvlTile(c,r)
+end
+

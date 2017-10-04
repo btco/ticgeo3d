@@ -119,9 +119,14 @@ function UpdateEnts()
 end
 
 function CheckGrenBlast(gren)
+ -- Did it go into a solid tile?
+ local solid=IsInSolidTile(gren.x,gren.z)
+ -- Has it hit an entity?
  local e=CalcHitTarget(gren)
- if not e and gren.y>FLOOR_Y then return end
- -- Has hit enemy, or fell on floor.
+ -- If it hasn't hit a solid tile, hasn't hit an ent
+ -- and didn't hit the floor, nothing happens.
+ if not solid and not e and gren.y>FLOOR_Y then return end
+ -- Has hit enemy, a solid tile, or fell on floor.
  gren.dead=true
  if G.flash then S3FlashDel(G.flash) end
  G.flash=S3FlashAdd({x=gren.x,z=gren.z,
