@@ -1,6 +1,6 @@
 -- Debug:
 local D_INVULN=false
-local D_NOENTS=false
+local D_NOENTS=true
 
 -- Tile size in world coords
 local TSIZE=50

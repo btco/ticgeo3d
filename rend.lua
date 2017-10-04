@@ -26,6 +26,7 @@ function Rend()
  S3SetCam(G.ex,G.ey,G.ez,G.yaw)
  S3Rend()
  RendHud(false)
+ RendHint()
 
  if G.msgCd>0 then
   G.msgCd=G.msgCd-G.dt
@@ -62,3 +63,28 @@ function RendHud(full)
   spr(S.HUD_KEY,26*8,HUDY+8)
  end
 end
+
+-- Render the "interaction hint" text.
+function RendHint()
+ local c,r=G.focC,G.focR
+ if not c then return end
+ local hint=nil
+ local td=TD[LvlTile(c,r)]
+ if td.f&TF.DOOR~=0 then
+  if td.f&TF.LOCKED~=0 then
+   if G.hasKey then
+    hint="Press S to unlock door"
+   else
+    hint="You need a key"
+   end
+  else
+   hint="Press S to open door"
+  end
+ end
+ if hint then
+  local X,Y,W,H=120,5,120,8
+  rect(X,Y,W,H,15)
+  print(hint,X+2,Y+2,0)
+ end
+end
+
