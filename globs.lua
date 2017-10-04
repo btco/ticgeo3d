@@ -329,6 +329,8 @@ local TF={
  DOOR=0x20,
  -- locked door.
  LOCKED=0x40,
+ -- lever on wall.
+ LEVER=0x80,
 }
 
 -- tile descriptors
@@ -353,6 +355,11 @@ local TD={
  [23]={f=TF.E|TF.DOOR|TF.LOCKED,tid=264},
  [25]={f=TF.W|TF.DOOR|TF.LOCKED,tid=264},
  [40]={f=TF.N|TF.DOOR|TF.LOCKED,tid=264},
+ -- Wall with switch
+ [11]={f=TF.S|TF.LEVER,tid=366},
+ [26]={f=TF.E|TF.LEVER,tid=366},
+ [28]={f=TF.W|TF.LEVER,tid=366},
+ [43]={f=TF.N|TF.LEVER,tid=366},
 }
 
 local LVL={

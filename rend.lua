@@ -73,7 +73,7 @@ function RendHint()
  if td.f&TF.DOOR~=0 then
   if td.f&TF.LOCKED~=0 then
    if G.hasKey then
-    hint="Press S to unlock door"
+    hint="Press S to unlock"
    else
     hint="You need a key"
    end
