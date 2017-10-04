@@ -197,7 +197,7 @@ function EntBehPursues(e)
   for mx=-1,1 do
    local px,pz=e.x+mx*e.speed*dt,
      e.z+mz*e.speed*dt
-   if IsPosValid(px,pz) then
+   if IsPosValid(px,pz,e) then
     local d2=DistSqToPlr(px,pz)
     if not bestd2 or d2<bestd2 then
      bestx,bestz,bestd2=px,pz,d2

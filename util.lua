@@ -5,15 +5,30 @@ function To2Dig(n)
 end
 
 -- Returns if the given position is valid as a 
--- player position (that is, doesn't collide with
--- any solid tiles).
-function IsPosValid(x,z)
- local cs=PLR_CS
+-- entity position or player (that is, doesn't
+-- collide with any solid tiles or entities).
+-- If ent is nil, the player's position will be
+-- used.
+function IsPosValid(x,z,ent)
+ local cs=ent and ent.w or PLR_CS
  -- Test four corners of player's collision rect.
- return not IsInSolidTile(x-cs,z-cs) and
-   not IsInSolidTile(x-cs,z+cs) and
-   not IsInSolidTile(x+cs,z-cs) and
-   not IsInSolidTile(x+cs,z+cs)
+ local solid=IsInSolidTile(x-cs,z-cs) or
+   IsInSolidTile(x-cs,z+cs) or
+   IsInSolidTile(x+cs,z-cs) or
+   IsInSolidTile(x+cs,z+cs)
+ if solid then return false end
+ -- Check for solid ents
+ local ents=G.ents
+ for i=1,#ents do
+  local e=ents[i]
+  if e~=ent and e.solid then
+   local d2=DistSqXZ(e.x,e.z,x,z)
+   if d2<0.25*(cs*cs+e.w*e.w) then
+    return false
+   end
+  end
+ end
+ return true
 end
 
 -- Returns whether the given position lies within

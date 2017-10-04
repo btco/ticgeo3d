@@ -80,6 +80,8 @@ local G_INIT={
  --   x,y,z: position
  --   w,h: width,height
  --   tid: texture id
+ --   solid: if true, ent is solid (player can't
+ --    walk through it)
  --
  --   attp: current attack phase, nil if not attacking.
  --   atte: time elapsed in current attack phase.
@@ -229,6 +231,7 @@ local ECFG={
   dmgMin=5,dmgMax=15,
   hp=2,
   vuln=true,
+  solid=true,
   attseq={
    {t=0.3,tid=TID.CYC_PRE},
    {t=0.5,tid=TID.CYC_ATK,dmg=true},
@@ -245,6 +248,7 @@ local ECFG={
   dmgMin=5,dmgMax=15,
   hp=2,
   vuln=true,
+  solid=true,
   attseq={
    {t=0.3,tid=TID.DEMON_PRE},
    {t=0.5,tid=TID.DEMON_ATK,dmg=true},
@@ -264,6 +268,7 @@ local ECFG={
   shotSpd=250,
   hp=2,
   vuln=true,
+  solid=true,
   attseq={
    {t=0.3,tid=TID.SPITTER_PRE},
    {t=0.5,tid=TID.SPITTER_ATK,dmg=true},
@@ -310,6 +315,7 @@ local ECFG={
  [E.PILLAR]={
   w=12,h=50,
   tid=TID.PILLAR,
+  solid=true,
  },
 }
 
