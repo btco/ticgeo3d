@@ -23,6 +23,8 @@ function TIC()
   TICDead()
  elseif A.mode==MODE.INSTRUX then
   TICInstrux()
+ elseif A.mode==MODE.MINIMAP then
+  TICMinimap()
  end
 
  print(S3Round(1000/(time()-stime)).."fps")
@@ -93,6 +95,14 @@ function TICPlay()
  -- Try to open a door, push a button, etc.
  if btnp(BTN.OPEN) then Interact() end
 
+ -- Open mini-map, if requested.
+ G.minimapC=btn(BTN.OPEN) and G.minimapC+dt or 0
+ if G.minimapC>1 then
+  G.minimapC=0
+  SetMode(MODE.MINIMAP)
+  return
+ end
+
  DoorAnimUpdate(dt)
  UpdateFocusTile()
  UpdateJustHurt()
@@ -101,6 +111,8 @@ function TICPlay()
  UpdateEnts()
  Rend()
 end
+
+function TICMinimap() MinimapTick() end
 
 function UpdateJustHurt()
  if not G.justHurt then return end

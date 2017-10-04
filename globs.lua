@@ -34,6 +34,7 @@ local MODE={
  INSTRUX=1, -- instructions screen.
  PLAY=2,    -- playing level.
  DEAD=3,    -- player is dead.
+ MINIMAP=4, -- showing minimap.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -166,6 +167,10 @@ local G_INIT={
  -- Focused tile (the tile the player will interact
  -- with when they press the interact key).
  focC=nil,focR=nil,
+
+ -- count-up to open minimap (this counts up when the
+ -- INTERACT button is pressed).
+ minimapC=0,
 }
 
 -- tile numbers
