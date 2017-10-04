@@ -163,6 +163,7 @@ function UpdateEnt(e)
  if e.shoots then EntBehShoots(e) end
  if e.hurtsPlr then EntBehHurtsPlr(e) end
  if e.falls then EntBehFalls(e) end
+ if e.fragile then EntBehFragile(e) end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
@@ -177,6 +178,10 @@ function UpdateEntAnim(e)
   local frs=floor((G.clk-e.ctime)/e.anim.inter)
   e.tid=e.anim.tids[1+frs%#e.anim.tids]
  end
+end
+
+function EntBehFragile(e)
+ if IsInSolidTile(e.x,e.z) then e.dead=true end
 end
 
 function EntBehPursues(e)

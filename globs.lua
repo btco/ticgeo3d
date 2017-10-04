@@ -118,6 +118,9 @@ local G_INIT={
  --    gravity.
  --   fallVy0: initial y speed
  --   fallAcc: fall acceleration
+ --
+ --   fragile: if true, ent is deleted on collision
+ --    with a solid obstacle (e.g. solid tile).
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
@@ -291,6 +294,7 @@ local ECFG={
   ttl=2,
   yanch=YANCH.CENTER,
   hurtsPlr=true, dmgMin=5, dmgMax=15,collRF=3,
+  fragile=true,  -- can't go through solid tiles
  },
  [E.GREN]={
   w=8,h=8,
