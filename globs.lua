@@ -32,10 +32,11 @@ local PLR_ATK={
 local MODE={
  -- Game modes.
  TITLE=0,   -- title screen.
- INSTRUX=1, -- instructions screen.
- PLAY=2,    -- playing level.
- DEAD=3,    -- player is dead.
- MINIMAP=4, -- showing minimap.
+ PREROLL=1, -- level name preroll
+ INSTRUX=2, -- instructions screen.
+ PLAY=3,    -- playing level.
+ DEAD=4,    -- player is dead.
+ MINIMAP=5, -- showing minimap.
 }
 
 -- Permanent game state (doesn't reset on every

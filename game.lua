@@ -25,6 +25,8 @@ function TIC()
   TICInstrux()
  elseif A.mode==MODE.MINIMAP then
   TICMinimap()
+ elseif A.mode==MODE.PREROLL then
+  TICPreroll()
  end
 
  print(S3Round(1000/(time()-stime)).."fps")
@@ -43,6 +45,16 @@ function TICDead()
  if A.mclk>5 then
   PalSet()
   SetMode(MODE.TITLE)
+  return
+ end
+end
+
+function TICPreroll()
+ cls(0)
+ print(G.lvl.name,30,30)
+ if A.mclk>2 then
+  music(0)
+  SetMode(MODE.PLAY)
   return
  end
 end
