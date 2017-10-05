@@ -1,6 +1,6 @@
 -- Debug:
 local D_INVULN=false
-local D_NOENTS=true
+local D_NOENTS=false
 
 -- Tile size in world coords
 local TSIZE=50
@@ -133,7 +133,7 @@ local G_INIT={
  hp=50,
  -- Ammo.
  ammo=20,
- grens=5,
+ grens=0,
 
  -- time, as per G.clk when plr last threw grenade
  lastGrenT=-999,
@@ -405,7 +405,7 @@ local LVL={
  --   name: display name of level.
  --   pg: map page where level starts.
  --   pgw,pgh: width and height of level, in pages
- {name="Level 1",pg=0,pgw=1,pgh=1},
+ {name="Level 1",pg=0,pgw=2,pgh=2},
  {name="Level Test",pg=1,pgw=1,pgh=1},
 }
 

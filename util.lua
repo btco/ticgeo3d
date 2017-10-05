@@ -10,7 +10,7 @@ end
 -- If ent is nil, the player's position will be
 -- used.
 function IsPosValid(x,z,ent)
- local cs=ent and ent.w or PLR_CS
+ local cs=ent and ent.w*0.25 or PLR_CS
  -- Test four corners of player's collision rect.
  local solid=IsInSolidTile(x-cs,z-cs) or
    IsInSolidTile(x-cs,z+cs) or

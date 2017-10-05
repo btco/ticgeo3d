@@ -175,6 +175,7 @@ function LvlTileAtXz(x,z)
 end
 
 function PullLever(c,r)
+ LvlTile(c,r,T.SOLID)
  local w=IwallAt(c,r)
  if w then w.tid=TID.LEVER_P end
  -- TODO: sfx
