@@ -74,22 +74,18 @@ function TICPlay()
  local PSPD=G.PSPD
  local dt=G.dt
  
- local fwd=btn(BTN.FWD) and 1 or btn(BTN.BACK) and
-   -1 or 0
- local right=btn(BTN.LEFT) and -1 or btn(BTN.RIGHT)
-   and 1 or 0
-
- local vx,vz=PlrFwdVec(fwd)
+ local mx,mz=GetDpad()
+ local vx,vz=PlrFwdVec(mz)
  MovePlr(PSPD*dt,vx,vz)
 
  if btn(BTN.STRAFE) then
   -- strafe
-  vx=-math.sin(G.yaw-1.5708)*right
-  vz=-math.cos(G.yaw-1.5708)*right
+  vx=-math.sin(G.yaw-1.5708)*mx
+  vz=-math.cos(G.yaw-1.5708)*mx
   MovePlr(PSPD*dt,vx,vz)
  else
   -- Turn.
-  G.yaw=G.yaw-right*G.PASPD*dt
+  G.yaw=G.yaw-mx*G.PASPD*dt
  end
 
  -- Try to open a door, push a button, etc.
@@ -97,9 +93,9 @@ function TICPlay()
 
  -- Open mini-map, if requested.
  G.minimapC=btn(BTN.OPEN) and G.minimapC+dt or 0
- if G.minimapC>1 then
+ if G.minimapC>0.5 then
   G.minimapC=0
-  SetMode(MODE.MINIMAP)
+  MinimapStart()
   return
  end
 
@@ -109,6 +105,7 @@ function TICPlay()
  UpdatePlrAtk()
  CheckEntHits()
  UpdateEnts()
+ MinimapUpdateOff()
  Rend()
 end
 

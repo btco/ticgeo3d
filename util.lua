@@ -147,3 +147,14 @@ function Blink(ondur,offdur,phase)
  return ondur>math.fmod(A.mclk,(ondur+offdur))
 end
 
+-- Returns a pair of mx,mz indicating what movement
+-- is requested by the arrow keys (each is 0, 1 or -1).
+function GetDpad()
+ local dx=btn(BTN.LEFT) and -1 or
+   (btn(BTN.RIGHT) and 1 or 0)
+ local dz=btn(BTN.FWD) and 1 or
+   (btn(BTN.BACK) and -1 or 0)
+ return dx,dz
+end
+
+

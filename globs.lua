@@ -171,6 +171,14 @@ local G_INIT={
  -- count-up to open minimap (this counts up when the
  -- INTERACT button is pressed).
  minimapC=0,
+
+ -- minimap offset x,y in screen coords
+ mmox,mmoy=0,0,
+
+ -- indicates which tiles have been "seen" (appear
+ -- on the minimap). Indexed as 240*r+c, and contains
+ -- a boolean.
+ mmseen={}
 }
 
 -- tile numbers
@@ -424,4 +432,5 @@ local PFX={
   fall=true,clr={14,15,11},ttl=2,size=4,
  },
 }
+
 
