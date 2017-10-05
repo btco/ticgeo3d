@@ -122,24 +122,29 @@ function UpdateEnts()
 end
 
 function CheckGrenBlast(gren)
+ local BLASTR2=30000  -- blast radius, squared
+ local VBLASTR2=45000 -- visual blast radius, squared
  -- Did it go into a solid tile?
  local solid=IsInSolidTile(gren.x,gren.z)
  -- Has it hit an entity?
- local e=CalcHitTarget(gren)
+ local et=CalcHitTarget(gren)
  -- If it hasn't hit a solid tile, hasn't hit an ent
  -- and didn't hit the floor, nothing happens.
- if not solid and not e and gren.y>FLOOR_Y then return end
+ if not solid and not et and
+   gren.y>FLOOR_Y then return end
  -- Has hit enemy, a solid tile, or fell on floor.
  gren.dead=true
  if G.flash then S3FlashDel(G.flash) end
  G.flash=S3FlashAdd({x=gren.x,z=gren.z,
-  int=10,fod2=40000})
+  int=10,fod2=VBLASTR2})
  -- Hurt all enemies in blast radius.
  for i=1,#G.ents do
   local e=G.ents[i]
   if e.vuln and e.bill.vis and e.hp then
    local d2=DistSqXZ(e.x,e.z,gren.x,gren.z)
-   if d2<40000 then HurtEnt(e,4) end
+   -- Main target takes 4 damage, others take 1.
+   local dmg=(e==et and 4 or 1)
+   if d2<BLASTR then HurtEnt(e,dmg) end
   end
  end
  Snd(SND.BOOM)
