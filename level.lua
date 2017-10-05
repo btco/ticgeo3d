@@ -89,8 +89,7 @@ function GetFocusTile()
  local t=LvlTile(c,r)
  local td=TD[t]
  if not td then return nil,nil end
- if 0~=td.f&TF.DOOR or 0~=td.f&TF.LEVER or
-   0~=td.f&TF.GATE then return c,r
+ if 0~=td.f&TF.INTEREST then return c,r
  else return nil,nil end
 end
 
@@ -220,8 +219,24 @@ function GetInteractHint()
   return "Press S to activate"
  elseif td.f&TF.GATE~=0 then
   return "Gate opens elsewhere!"
+ elseif td.f&TF.PORTAL~=0 then
+  return "Step into the portal!"
  end
  return nil
+end
+
+function CheckLevelEnd()
+ local t=LvlTileAtXz(G.ex,G.ez)
+ if TD[t] and TD[t].f&TF.PORTAL then
+  -- Player stepped through portal
+  if G.lvlNo<#LVL then
+   -- Go to next level.
+   StartLevel(G.lvlNo+1)
+  else
+   -- End of game.
+   SetMode(MODE.WIN)
+  end
+ end
 end
 
 

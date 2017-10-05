@@ -27,6 +27,8 @@ function TIC()
   TICMinimap()
  elseif A.mode==MODE.PREROLL then
   TICPreroll()
+ elseif A.mode==MODE.WIN then
+  TICWin()
  end
 
  if D_SHOWFPS then
@@ -49,6 +51,13 @@ function TICDead()
   SetMode(MODE.TITLE)
   return
  end
+end
+
+function TICWin()
+ cls(0)
+ PrintC("The end!",120,60)
+ PrintC("Thanks for playing!",120,70)
+ if A.mclk>2 then SetMode(MODE.TITLE) end
 end
 
 function TICPreroll()
@@ -131,6 +140,7 @@ function TICPlay()
  CheckEntHits()
  UpdateEnts()
  MinimapUpdateOff()
+ CheckLevelEnd()
  Rend()
 end
 

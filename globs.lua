@@ -1,8 +1,9 @@
 -- Debug:
-local D_INVULN=false
+local D_INVULN=true
 local D_NOENTS=false
-local D_LVL=2
+local D_LVL=1
 local D_SHOWFPS=false
+local D_STARTGREN=20
 
 -- Tile size in world coords
 local TSIZE=50
@@ -38,6 +39,7 @@ local MODE={
  PLAY=3,    -- playing level.
  DEAD=4,    -- player is dead.
  MINIMAP=5, -- showing minimap.
+ WIN=6,     -- beat entire game.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -146,7 +148,7 @@ local G_INIT={
  hp=50,
  -- Ammo.
  ammo=20,
- grens=0,
+ grens=D_STARTGREN,
 
  -- time, as per G.clk when plr last threw grenade
  lastGrenT=-999,
@@ -222,6 +224,7 @@ local E={
  GREN_BOX=66,
  PILLAR=51,
  TREE=67,
+ PORTAL=80,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -239,6 +242,8 @@ local ANIM={
   TID.SPITTER_2}},
  FIREBALL={inter=0.2,tids={TID.FIREBALL_1,
   TID.FIREBALL_2}},
+ PORTAL={inter=0.2,tids={TID.PORTAL_1,TID.PORTAL_2,
+  TID.PORTAL_3,TID.PORTAL_2}},
 }
 
 -- possible Y anchors for entities
@@ -356,11 +361,15 @@ local ECFG={
   tid=TID.PILLAR,
   solid=true,
  },
+ [E.PORTAL]={
+  w=48,h=48,
+  anim=ANIM.PORTAL,
+ },
  [E.TREE]={
   w=20,h=40,
   tid=TID.TREE,
   solid=true,
- }
+ },
 }
 
 -- tile flags
@@ -377,7 +386,13 @@ local TF={
  LEVER=0x80,
  -- gate
  GATE=0x100,
+ -- portal (to next level).
+ PORTAL=0x200,
 }
+
+-- flags that are considered "of interest" (can
+-- be interacted with).
+TF.INTEREST=TF.DOOR|TF.LEVER|TF.GATE|TF.PORTAL
 
 -- tile descriptors
 -- w: which walls this tile contains
@@ -420,6 +435,8 @@ local TD={
  [68]={f=TF.E|TF.GATE,tid=TID.GATE},
  [70]={f=TF.W|TF.GATE,tid=TID.GATE},
  [85]={f=TF.N|TF.GATE,tid=TID.GATE},
+ -- Portal.
+ [E.PORTAL]={f=TF.PORTAL|TF.NSLD},
 }
 
 local LVL={
