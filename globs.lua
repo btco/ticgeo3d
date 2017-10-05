@@ -1,9 +1,9 @@
 -- Debug:
-local D_INVULN=true
+local D_INVULN=false
 local D_NOENTS=false
 local D_LVL=1
 local D_SHOWFPS=false
-local D_STARTGREN=20
+local D_STARTGREN=0
 
 -- Tile size in world coords
 local TSIZE=50
