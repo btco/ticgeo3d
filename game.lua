@@ -26,7 +26,13 @@ end
 function TICTitle()
  local c,r=MapPageStart(62)
  map(c,r,30,17)
- if btnp(BTN.FIRE) then SetMode(MODE.INSTRUX) end
+ if btnp(BTN.FIRE) then
+  -- If player already cleared one or more
+  -- levels, show level select. Otherwise
+  -- show instructions.
+  SetMode(IsLvlLocked(2) and
+    MODE.INSTRUX or MODE.LVLSEL)
+ end
 end
 
 function TICDead()
@@ -82,6 +88,30 @@ function TICInstrux()
   print("- Press FIRE to continue -",50,124,4)
  end
  if btnp(BTN.FIRE) then StartLevel(D_LVL or 1) end
+end
+
+function TICLvlSel()
+ cls(0)
+ PrintC("Select level",120,10,15)
+ local X,Y=20,100
+ local RH=10
+ for i=1,#LVL do
+  local y=Y+RH*i
+  local locked=IsLvlLocked(i)
+  if locked then
+   spr(S.LOCK,X+10,y)
+  end
+  print(i..": "..LVL[i].name,X+20,y,
+   locked and 2 or (i==A.sel and 14 or 15))
+ end
+ spr(S.ARROW,X,A.sel*RH+Y)
+ local mx,my=GetDpadP()
+ A.sel=A.sel+my
+ A.sel=A.sel<1 and #LVL or
+  (A.sel>#LVL and 1 or A.sel)
+ if btnp(BTN.FIRE) and not IsLvlLocked(A.sel) then
+  StartLevel(A.sel)
+ end
 end
 
 function StartLevel(lvlNo)
@@ -243,6 +273,7 @@ end
 -- TIC update delegation table
 TICF={
  [MODE.TITLE]=TICTitle,
+ [MODE.LVLSEL]=TICLvlSel,
  [MODE.PLAY]=TICPlay,
  [MODE.DEAD]=TICDead,
  [MODE.INSTRUX]=TICInstrux,

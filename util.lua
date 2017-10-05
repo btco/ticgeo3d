@@ -157,6 +157,16 @@ function GetDpad()
  return dx,dz
 end
 
+-- Returns a pair of mx,mz indicating what movement
+-- is requested by the arrow keys (each is 0, 1 or -1).
+function GetDpadP()
+ local dx=btnp(BTN.LEFT) and -1 or
+   (btnp(BTN.RIGHT) and 1 or 0)
+ local dz=btn(BTN.FWD) and 1 or
+   (btnp(BTN.BACK) and -1 or 0)
+ return dx,dz
+end
+
 -- Prints centered text.
 function PrintC(text,cx,cy,color,fixed,scale)
  color=color or 15
@@ -165,5 +175,12 @@ function PrintC(text,cx,cy,color,fixed,scale)
  -- Print outside of screen bounds to measure text.
  local w,h=print(text,0,-10,color,fixed,scale),6
  print(text,cx-w*0.5,cy-h*0.5,color,fixed,scale)
+end
+
+-- Returns true if given level is locked (can't
+-- be played)
+function IsLvlLocked(l)
+ local hcl=D_HCL or (pmem(0) or 0)
+ return l>hcl+1
 end
 

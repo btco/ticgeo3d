@@ -1,9 +1,9 @@
 -- Debug:
 local D_INVULN=false
-local D_NOENTS=false
 local D_LVL=1
 local D_SHOWFPS=false
 local D_STARTGREN=0
+local D_HCL=1
 
 -- Tile size in world coords
 local TSIZE=50
@@ -34,12 +34,13 @@ local PLR_ATK={
 local MODE={
  -- Game modes.
  TITLE=0,   -- title screen.
- PREROLL=1, -- level name preroll
- INSTRUX=2, -- instructions screen.
- PLAY=3,    -- playing level.
- DEAD=4,    -- player is dead.
- MINIMAP=5, -- showing minimap.
- WIN=6,     -- beat entire game.
+ LVLSEL=1,  -- level select screen.
+ PREROLL=2, -- level name preroll
+ INSTRUX=3, -- instructions screen.
+ PLAY=4,    -- playing level.
+ DEAD=5,    -- player is dead.
+ MINIMAP=6, -- showing minimap.
+ WIN=7,     -- beat entire game.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -49,6 +50,7 @@ local A={  -- A for "App"
  mclk=0,   -- time elapsed in current mode
            -- (resets on mode switch).
  lftime=-1,  -- last frame time, -1 if none.
+ sel=1,    -- current selection in menu
 }
 
 -- Transient game state. Resets every time we start
@@ -207,6 +209,8 @@ local S={
  FLAG=240,
  META_0=241,
  HUD_KEY=230,
+ LOCK=188,
+ ARROW=187,
 }
 
 -- entity types. Use the same sprite ID that
