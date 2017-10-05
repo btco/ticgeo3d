@@ -65,7 +65,7 @@ function TICInstrux()
  if Blink(0.5) then
   print("- Press FIRE to continue -",50,124,4)
  end
- if btnp(BTN.FIRE) then StartLevel(1) end
+ if btnp(BTN.FIRE) then StartLevel(D_LVL or 1) end
 end
 
 function TICPlay()

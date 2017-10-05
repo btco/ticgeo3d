@@ -1,6 +1,7 @@
 -- Debug:
 local D_INVULN=false
 local D_NOENTS=false
+local D_LVL=2
 
 -- Tile size in world coords
 local TSIZE=50
@@ -213,6 +214,7 @@ local E={
  SPITTER=50,
  GREN_BOX=66,
  PILLAR=51,
+ TREE=67,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -347,6 +349,11 @@ local ECFG={
   tid=TID.PILLAR,
   solid=true,
  },
+ [E.TREE]={
+  w=20,h=40,
+  tid=TID.TREE,
+  solid=true,
+ }
 }
 
 -- tile flags
@@ -413,8 +420,18 @@ local LVL={
  --   name: display name of level.
  --   pg: map page where level starts.
  --   pgw,pgh: width and height of level, in pages
- {name="Level 1",pg=0,pgw=2,pgh=2},
- {name="Level Test",pg=1,pgw=1,pgh=1},
+ --   floorC: floor color
+ --   ceilC: ceiling color
+ {
+  name="The Dungeons",
+  pg=0,pgw=2,pgh=2,
+  floorC=9,ceilC=0,
+ },
+ {
+  name="The Garden",
+  pg=1,pgw=1,pgh=1,
+  floorC=7,ceilC=0,
+ },
 }
 
 DEBUGS=nil

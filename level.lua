@@ -117,6 +117,7 @@ function StartLevel(lvlNo)
  G.lvl=LVL[lvlNo]
  local lvl=G.lvl
  S3Reset()
+ S3.FLOOR_CLR,S3.CEIL_CLR=lvl.floorC,lvl.ceilC
  G.ex=nil
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do

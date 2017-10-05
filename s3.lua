@@ -50,6 +50,7 @@ local TID={
   LEVER=328,       -- wall with a lever on it
   LEVER_P=332,     -- wall with a lever on it (pulled)
   GATE=112,
+  TREE=46,
 }
 
 local S3={
@@ -70,6 +71,9 @@ local S3={
  -- light flicker amount (as dist squared)
  FLIC_AMP=1500,
  FLIC_FM=0.003,  -- frequency multiplier
+ -- Floor and ceiling colors.
+ FLOOR_CLR=9,
+ CEIL_CLR=0,
  -- Texture definitions. Each texture is identified
  -- by a texture ID, which is the top-left sprite
  -- where the texture starts. This map is keyed
@@ -109,6 +113,7 @@ local S3={
   [TID.LEVER]={w=32,h=32},
   [TID.LEVER_P]={w=32,h=32},
   [TID.GATE]={w=32,h=32},
+  [TID.TREE]={w=8,h=16},
  },
  
  ---------------------------------------------------
@@ -152,9 +157,6 @@ local S3={
  -- coord, and also depth. This allows clipping and
  -- rudimentary depth testing.
  hbuf={},
- -- Floor and ceiling colors.
- floorC=9,
- ceilC=0,
  -- Color model, indicating which colors are shades
  -- of the same hue.
  clrM={
@@ -774,7 +776,7 @@ end
 
 function _S3RendFlats(hbuf)
  local scrw,scrh=SCRW,SCRH
- local ceilC,floorC=S3.ceilC,S3.floorC
+ local ceilC,floorC=S3.CEIL_CLR,S3.FLOOR_CLR
  local startx,endx,step=_S3AdjHbufIter(S3.VP_L,S3.VP_R)
  for x=startx,endx,step do
   local cby=scrh//2 -- ceiling bottom y
