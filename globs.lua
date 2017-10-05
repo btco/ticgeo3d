@@ -87,6 +87,11 @@ local G_INIT={
  --   solid: if true, ent is solid (player can't
  --    walk through it)
  --
+ --   asleep: if this is true, it remains true
+ --    until the entity is first seen, at which point
+ --    it becomes false and the entity starts
+ --    acting.
+ --
  --   attp: current attack phase, nil if not attacking.
  --   atte: time elapsed in current attack phase.
  --
@@ -248,12 +253,13 @@ local ECFG={
   w=50,h=50,
   anim=ANIM.ZOMBW,
   pursues=true,
-  speed=20,
+  speed=30,
   attacks=true,
   dmgMin=5,dmgMax=15,
   hp=2,
   vuln=true,
   solid=true,
+  asleep=true,
   attseq={
    {t=0.3,tid=TID.CYC_PRE},
    {t=0.5,tid=TID.CYC_ATK,dmg=true},
@@ -265,10 +271,11 @@ local ECFG={
   yanch=YANCH.CENTER,
   anim=ANIM.DEMON,
   pursues=true,
-  speed=40,
+  speed=50,
   attacks=true,
   dmgMin=5,dmgMax=15,
   hp=2,
+  asleep=true,
   vuln=true,
   solid=true,
   attseq={
@@ -282,7 +289,7 @@ local ECFG={
   yanch=YANCH.CENTER,
   anim=ANIM.SPITTER,
   pursues=true,
-  speed=40,
+  speed=20,
   attacks=false,
   shoots=true,
   shot=E.FIREBALL,
@@ -291,6 +298,7 @@ local ECFG={
   hp=2,
   vuln=true,
   solid=true,
+  asleep=true,
   attseq={
    {t=0.3,tid=TID.SPITTER_PRE},
    {t=0.5,tid=TID.SPITTER_ATK,dmg=true},

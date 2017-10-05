@@ -105,7 +105,10 @@ function UpdateEnts()
  local ents=G.ents
  UpdateFlash()
  for i=1,#ents do
-  UpdateEnt(ents[i])
+  local e=ents[i]
+  UpdateEnt(e)
+  -- If entity was seen, it's now awake.
+  e.asleep=e.asleep and not e.bill.vis
  end
  -- Delete dead entities.
  for i=#ents,1,-1 do
@@ -156,14 +159,16 @@ end
 function UpdateEnt(e)
  UpdateEntAnim(e)
  -- Update behaviors
- if e.pursues then EntBehPursues(e) end
- if e.attacks then EntBehAttacks(e) end
- if e.ttl then EntBehTtl(e) end
- if e.vx and e.vz then EntBehVel(e) end
- if e.shoots then EntBehShoots(e) end
- if e.hurtsPlr then EntBehHurtsPlr(e) end
- if e.falls then EntBehFalls(e) end
- if e.fragile then EntBehFragile(e) end
+ if not e.asleep then
+  if e.pursues then EntBehPursues(e) end
+  if e.attacks then EntBehAttacks(e) end
+  if e.vx and e.vz then EntBehVel(e) end
+  if e.shoots then EntBehShoots(e) end
+  if e.hurtsPlr then EntBehHurtsPlr(e) end
+  if e.falls then EntBehFalls(e) end
+  if e.fragile then EntBehFragile(e) end
+  if e.ttl then EntBehTtl(e) end
+ end
  -- Copy necessary fields to the billboard object.
  e.bill.x,e.bill.y,e.bill.z=e.x,e.y,e.z
  e.bill.w,e.bill.h=e.w,e.h
