@@ -15,21 +15,8 @@ function TIC()
  local dt=A.dt
  A.mclk=A.mclk+dt
 
- if A.mode==MODE.TITLE then
-  TICTitle()
- elseif A.mode==MODE.PLAY then
-  TICPlay()
- elseif A.mode==MODE.DEAD then
-  TICDead()
- elseif A.mode==MODE.INSTRUX then
-  TICInstrux()
- elseif A.mode==MODE.MINIMAP then
-  TICMinimap()
- elseif A.mode==MODE.PREROLL then
-  TICPreroll()
- elseif A.mode==MODE.WIN then
-  TICWin()
- end
+ local f=TICF[A.mode]
+ if f then f() end
 
  if D_SHOWFPS then
   print(S3Round(1000/(time()-stime)).."fps")
@@ -252,5 +239,16 @@ function Snd(snd)
  assert(snd.sfx)
  sfx(snd.sfx,snd.note,snd.dur,0,snd.vol,snd.spd)
 end
+
+-- TIC update delegation table
+TICF={
+ [MODE.TITLE]=TICTitle,
+ [MODE.PLAY]=TICPlay,
+ [MODE.DEAD]=TICDead,
+ [MODE.INSTRUX]=TICInstrux,
+ [MODE.MINIMAP]=TICMinimap,
+ [MODE.PREROLL]=TICPreroll,
+ [MODE.WIN]=TICWin,
+}
 
 Boot()
