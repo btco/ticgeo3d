@@ -2,6 +2,7 @@
 local D_INVULN=false
 local D_NOENTS=false
 local D_LVL=2
+local D_SHOWFPS=false
 
 -- Tile size in world coords
 local TSIZE=50
@@ -56,6 +57,11 @@ local G_INIT={
  ex=350, ey=25, ez=350, yaw=30,
  lftime=-1,  -- last frame time
  clk=0, -- game clock, seconds
+
+ -- Current level number.
+ lvlNo=0,
+ -- Convenience ref to LVL[lvlNo]
+ lvl=nil,
 
  -- All the walls of interest (doors and levers) in
  -- the level, indexed by the tile the are on.

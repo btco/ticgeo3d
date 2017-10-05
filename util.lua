@@ -157,4 +157,13 @@ function GetDpad()
  return dx,dz
 end
 
+-- Prints centered text.
+function PrintC(text,cx,cy,color,fixed,scale)
+ color=color or 15
+ fixed=fixed or false
+ scale=scale or 1
+ -- Print outside of screen bounds to measure text.
+ local w,h=print(text,0,-10,color,fixed,scale),6
+ print(text,cx-w*0.5,cy-h*0.5,color,fixed,scale)
+end
 

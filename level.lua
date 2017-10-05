@@ -108,7 +108,9 @@ function Interact()
  end
 end
 
-function StartLevel(lvlNo)
+-- Loads the given level. This won't set the mode
+-- to play mode, it will only load the level.
+function LoadLevel(lvlNo)
  -- Reset G (game state), resetting it to the initial
  -- state.
  PalSet()
@@ -140,14 +142,8 @@ function StartLevel(lvlNo)
  end
  assert(G.ex,"Start pos flag not found.")
 
- -- Fully render hud. Thereafter we only render
- -- updates to small parts of it.
- RendHud(true)
-
  -- Create weapon overlay.
  G.weapOver=S3OverAdd({sx=84,sy=94,tid=460,scale=2})
-
- SetMode(MODE.PREROLL)
 end
 
 -- Returns the level tile at c,r.

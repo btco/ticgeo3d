@@ -29,7 +29,9 @@ function TIC()
   TICPreroll()
  end
 
- print(S3Round(1000/(time()-stime)).."fps")
+ if D_SHOWFPS then
+  print(S3Round(1000/(time()-stime)).."fps")
+ end
 end
 
 function TICTitle()
@@ -51,12 +53,18 @@ end
 
 function TICPreroll()
  cls(0)
- print(G.lvl.name,30,30)
- if A.mclk>2 then
-  music(0)
-  SetMode(MODE.PLAY)
-  return
- end
+ PrintC("LEVEL "..G.lvlNo,120,60,11)
+ PrintC(G.lvl.name,120,70)
+ if A.mclk>2 then EndPreroll() end
+end
+
+function EndPreroll()
+ cls(0)
+ music(0)
+ SetMode(MODE.PLAY)
+ -- Fully render hud. Thereafter we only render
+ -- updates to small parts of it.
+ RendHud(true)
 end
 
 function TICInstrux()
@@ -78,6 +86,11 @@ function TICInstrux()
   print("- Press FIRE to continue -",50,124,4)
  end
  if btnp(BTN.FIRE) then StartLevel(D_LVL or 1) end
+end
+
+function StartLevel(lvlNo)
+ LoadLevel(lvlNo) 
+ SetMode(MODE.PREROLL)
 end
 
 function TICPlay()
