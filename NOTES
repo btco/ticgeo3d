@@ -1,6 +1,3 @@
-* BUG: on restart, level is not resetting doors, doors that were
-  opened before remain open.
-
 * BUG: minimap doesn't work on level >1
 
 DONE:

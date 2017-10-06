@@ -153,9 +153,12 @@ function LvlTile(c,r,newval)
  if c>=cols or r>=rows or c<0 or r<0 then
   return 0
  end
- local c0,r0=MapPageStart(G.lvl.pg)
- local val=mget(c0+c,r0+r)
- if newval then mset(c0+c,r0+r,newval) end
+ local val=G.otiles[r*240+c]
+ if not val then
+  local c0,r0=MapPageStart(G.lvl.pg)
+  val=mget(c0+c,r0+r)
+ end
+ if newval then G.otiles[r*240+c]=newval end
  return val
 end
 
@@ -229,13 +232,7 @@ function CheckLevelEnd()
  local t=LvlTileAtXz(G.ex,G.ez)
  if TD[t] and TD[t].f&TF.PORTAL then
   -- Player stepped through portal
-  if G.lvlNo<#LVL then
-   -- Go to next level.
-   StartLevel(G.lvlNo+1)
-  else
-   -- End of game.
-   SetMode(MODE.WIN)
-  end
+  SetMode(MODE.EOL)
  end
 end
 

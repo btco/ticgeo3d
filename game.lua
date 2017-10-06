@@ -5,6 +5,7 @@ end
 
 function SetMode(m)
  A.mode,A.mclk=m,0
+ PalSet()
 end
 
 function TIC()
@@ -40,7 +41,6 @@ function TICDead()
  rect(0,50,240,30,0)
  print("You died.",80,60,15,false,2)
  if A.mclk>5 then
-  PalSet()
   SetMode(MODE.TITLE)
   return
  end
@@ -117,6 +117,21 @@ end
 function StartLevel(lvlNo)
  LoadLevel(lvlNo) 
  SetMode(MODE.PREROLL)
+end
+
+function TICEol()
+ cls(0)
+ PrintC("Level clear!",120,60)
+ if A.mclk>1 then
+  if G.lvlNo<#LVL then
+   -- Go to next level.
+   StartLevel(G.lvlNo+1)
+  else
+   -- End of game.
+   SetMode(MODE.WIN)
+  end
+ 
+ end
 end
 
 function TICPlay()
@@ -280,6 +295,7 @@ TICF={
  [MODE.MINIMAP]=TICMinimap,
  [MODE.PREROLL]=TICPreroll,
  [MODE.WIN]=TICWin,
+ [MODE.EOL]=TICEol,
 }
 
 Boot()

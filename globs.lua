@@ -3,7 +3,7 @@ local D_INVULN=false
 local D_LVL=1
 local D_SHOWFPS=false
 local D_STARTGREN=0
-local D_HCL=1
+local D_HCL=0
 
 -- Tile size in world coords
 local TSIZE=50
@@ -35,12 +35,13 @@ local MODE={
  -- Game modes.
  TITLE=0,   -- title screen.
  LVLSEL=1,  -- level select screen.
- PREROLL=2, -- level name preroll
+ PREROLL=2, -- level name preroll.
  INSTRUX=3, -- instructions screen.
  PLAY=4,    -- playing level.
  DEAD=5,    -- player is dead.
  MINIMAP=6, -- showing minimap.
- WIN=7,     -- beat entire game.
+ EOL=7,     -- end of level.
+ WIN=8,     -- beat entire game.
 }
 
 -- Permanent game state (doesn't reset on every
@@ -195,7 +196,10 @@ local G_INIT={
  -- indicates which tiles have been "seen" (appear
  -- on the minimap). Indexed as 240*r+c, and contains
  -- a boolean.
- mmseen={}
+ mmseen={},
+
+ -- overwritten tiles, indexed as r*240+c.
+ otiles={},
 }
 
 -- tile numbers
