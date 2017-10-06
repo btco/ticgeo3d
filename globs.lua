@@ -474,12 +474,12 @@ local LVL={
  --   ceilC: ceiling color
  {
   name="The Dungeons",
-  pg=0,pgw=2,pgh=2,
+  pg=0,pgw=1,pgh=2,
   floorC=9,ceilC=0,
  },
  {
   name="The Garden",
-  pg=1,pgw=1,pgh=1,
+  pg=1,pgw=1,pgh=2,
   floorC=7,ceilC=0,
  },
 }
