@@ -482,6 +482,11 @@ local LVL={
   pg=1,pgw=1,pgh=2,
   floorC=7,ceilC=0,
  },
+ {
+  name="The City",
+  pg=2,pgw=1,pgh=2,
+  floorC=2,ceilC=0,
+ },
 }
 
 DEBUGS=nil
