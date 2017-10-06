@@ -51,7 +51,11 @@ function CheckArrowHit(arrow)
  local e=CalcHitTarget(arrow)
  if not e then return end
  arrow.dead=true
- HurtEnt(e,1)
+ -- Arrow damage decreases with distance (how long
+ -- the arrow has been flying)
+ local age=G.clk-arrow.ctime
+ local dmg=max(1,S3Round(10-age*20))
+ HurtEnt(e,dmg)
 end
 
 function HurtEnt(e,dmg)
@@ -203,26 +207,54 @@ end
 
 function EntBehPursues(e)
  if not e.speed then return end
+ local ideald2=e.idealDist2 or 2500
  local dist2=DistSqXZ(e.x,e.z,G.ex,G.ez)
- if dist2<2500 or dist2>250000 then return end
+ if dist2>250000 then return end
  local dt=G.dt
 
+ -- If in wander mode, just wander in the given
+ -- direction until we hit something.
+ if e.pursueWcd then
+  e.pursueWcd=e.pursueWcd-dt
+  if e.pursueWcd<0 then e.pursueWcd=nil end
+  local px,pz=e.x+e.pursueWvx*dt,
+    e.z+e.pursueWvz*dt
+  if IsPosValid(px,pz,e) then
+   -- Continue wandering.
+   e.x,e.z=px,pz
+   return
+  end
+  -- If we got here, we bumped into something.
+  -- End wandering.
+  e.pursueWcd=nil
+ end
+
  -- Find the move direction that brings us closest
- -- to the player.
- local bestx,bestz,bestd2=nil,nil,nil
+ -- to the ideal distance from the player.
+ local bestx,bestz,bestd2,bestmx,bestmz=
+   nil,nil,nil,nil,nil
  for mz=-1,1 do
   for mx=-1,1 do
    local px,pz=e.x+mx*e.speed*dt,
      e.z+mz*e.speed*dt
    if IsPosValid(px,pz,e) then
     local d2=DistSqToPlr(px,pz)
-    if not bestd2 or d2<bestd2 then
-     bestx,bestz,bestd2=px,pz,d2
+    if not bestd2 or
+      abs(d2-ideald2)<abs(bestd2-ideald2) then
+     bestx,bestz,bestd2,bestmx,bestmz=px,pz,d2,mx,mz
     end
    end
   end
  end
- if not bestx then return end
+ if not bestx or (bestmx==0 and bestmz==0) then
+  -- We're stuck (no good direction found).
+  -- Wander in a random direction for a bit.
+  e.pursueWcd=e.wanderTime or 2
+  local phi=random()*6.28
+  e.pursueWvx=e.speed*cos(phi)
+  e.pursueWvz=e.speed*sin(phi)
+  return
+ end
  e.x,e.z=bestx,bestz
 end
 

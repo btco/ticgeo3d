@@ -28,6 +28,11 @@ function IsPosValid(x,z,ent)
    end
   end
  end
+ -- If this is not the player, check that it wouldn't
+ -- collide with the player.
+ if ent and DistSqToPlr(x,z)<2500 then
+  return false
+ end
  return true
 end
 

@@ -1,8 +1,8 @@
 -- Debug:
-local D_INVULN=false
+local D_INVULN=true
 local D_SHOWFPS=false
 local D_STARTGREN=nil
-local D_HCL=1
+local D_HCL=99
 
 -- Tile size in world coords
 local TSIZE=50
@@ -27,7 +27,7 @@ local BTN={
 local PLR_ATK={
  -- Draw phase
  {tid=TID.CBOW_D,t=0.2,fire=false},
- {tid=TID.CBOW_E,t=0.8,fire=true}
+ {tid=TID.CBOW_E,t=0.5,fire=true}
 }
 
 local MODE={
@@ -110,7 +110,18 @@ local G_INIT={
  --  Behavior-related fields:
  --
  --   pursues: (bool) does it pursue the player?
+ --   idealDist2: the desired distance (squared)
+ --     to keep from the player.
  --   speed: speed of motion, if it moves
+ --   wanderTime: how long this entity will wander
+ --    randomly if it gets stuck. This should be
+ --    small for entities that use melee attacks
+ --    and need to be close to the player, larger
+ --    for entities with ranged attacks.
+ --   RUNTIME:
+ --     pursueWcd: (runtime) if not nil, monster
+ --      is in wandering state for this many sec.
+ --     pursueWvx,pursueWvy: (runtime) wander velocity
  --
  --   attacks: (bool) does it attack the player?
  --   dmgMin: min damage caused per attack
@@ -288,10 +299,12 @@ local ECFG={
   w=50,h=50,
   anim=ANIM.ZOMBW,
   pursues=true,
-  speed=30,
+  idealDist2=2500,
+  wanderTime=0.7,
+  speed=40,
   attacks=true,
   dmgMin=5,dmgMax=15,
-  hp=2,
+  hp=20,
   vuln=true,
   solid=true,
   asleep=true,
@@ -306,10 +319,12 @@ local ECFG={
   yanch=YANCH.CENTER,
   anim=ANIM.DEMON,
   pursues=true,
-  speed=50,
+  idealDist2=2500,
+  wanderTime=1.2,
+  speed=60,
   attacks=true,
   dmgMin=5,dmgMax=15,
-  hp=2,
+  hp=20,
   asleep=true,
   vuln=true,
   solid=true,
@@ -324,13 +339,15 @@ local ECFG={
   yanch=YANCH.CENTER,
   anim=ANIM.SPITTER,
   pursues=true,
-  speed=20,
+  idealDist2=80000,
+  wanderTime=4,
+  speed=70,
   attacks=false,
   shoots=true,
   shot=E.FIREBALL,
-  shotInt=1.5,
-  shotSpd=250,
-  hp=2,
+  shotInt=2.0,
+  shotSpd=200,
+  hp=20,
   vuln=true,
   solid=true,
   asleep=true,
