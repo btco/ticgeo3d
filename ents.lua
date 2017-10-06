@@ -96,9 +96,16 @@ end
 -- Returns true iff given projectile has
 -- hit the given entity.
 function ProjHitEnt(p,e)
- local d2=DistSqXZ(p.x,p.z,e.x,e.z)
- local r=0.5*e.w
- return d2<(r*r)
+ -- Projectiles are fast, so we need to check
+ -- smaller increments of their motion.
+ local dt=G.dt
+ local r2=0.25*e.w*e.w
+ for u=0,100,25 do
+  local px,pz=p.x-G.dt*p.vx*u*0.01,
+   p.z-G.dt*p.vz*u*0.01
+  if r2>DistSqXZ(px,pz,e.x,e.z) then return true end
+ end
+ return false
 end
 
 function UpdateEnts()

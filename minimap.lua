@@ -52,7 +52,8 @@ end
 
 function MinimapRemap(t,c,r)
  if not G.mmseen[r*240+c] then return 0 end
- if not TD[t] then return 0 end
- return t
+ if TD[t] then return t end
+ if MMTILES[t] then return t end
+ return 0
 end
 

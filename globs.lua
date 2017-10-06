@@ -239,6 +239,15 @@ local E={
  GREN=1002,
 }
 
+-- Tiles that appear in mini map despite not
+-- being walls/doors
+local MMTILES={
+ [E.PILLAR]=true,
+ [E.TREE]=true,
+ [E.PORTAL]=true,
+ [E.KEY]=true,
+}
+
 -- animations
 local ANIM={
  ZOMBW={inter=0.2,tids={TID.CYC_W1,TID.CYC_W2}},
