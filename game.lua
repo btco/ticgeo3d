@@ -105,7 +105,7 @@ function TICLvlSel()
   local y=Y+RH*i
   local locked=IsLvlLocked(i)
   if locked then
-   spr(S.LOCK,X+10,y)
+   spr(S.LOCK,X+10,y-2)
   end
   print(i..": "..LVL[i].name,X+20,y,
    locked and 2 or (i==A.sel and 14 or 15))
@@ -231,7 +231,7 @@ function UpdatePlrAtk()
    gren.y=G.ey-2
    gren.vx,gren.vz=dx*50,dz*50
    G.grens=G.grens-1
-  else
+  elseif G.grens==0 then
    Say("No flame orbs left!")
    -- TODO: error sfx
   end

@@ -169,7 +169,7 @@ end
 function GetDpadP()
  local dx=btnp(BTN.LEFT) and -1 or
    (btnp(BTN.RIGHT) and 1 or 0)
- local dz=btn(BTN.FWD) and 1 or
+ local dz=btnp(BTN.FWD) and 1 or
    (btnp(BTN.BACK) and -1 or 0)
  return dx,dz
 end
