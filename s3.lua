@@ -67,7 +67,7 @@ local S3={
  FLOOR_Y=0,
  CEIL_Y=50,
  -- fog start and end dists (squared)
- FOG_S=20000,
+ FOG_S=10000,
  FOG_E=80000,
  -- light flicker amount (as dist squared)
  FLIC_AMP=1500,
