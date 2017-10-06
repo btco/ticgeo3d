@@ -151,7 +151,7 @@ function CheckGrenBlast(gren)
    local d2=DistSqXZ(e.x,e.z,gren.x,gren.z)
    -- Main target takes 4 damage, others take 1.
    local dmg=(e==et and 4 or 1)
-   if d2<BLASTR then HurtEnt(e,dmg) end
+   if d2<BLASTR2 then HurtEnt(e,dmg) end
   end
  end
  Snd(SND.BOOM)

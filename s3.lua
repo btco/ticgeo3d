@@ -52,6 +52,7 @@ local TID={
   GATE=112,
   TREE=46,
   PORTAL_1=152,PORTAL_2=154,PORTAL_3=156,
+  FOUNT_1=120,FOUNT_2=122,FOUNT_3=124,
 }
 
 local S3={
@@ -118,6 +119,9 @@ local S3={
   [TID.PORTAL_1]={w=16,h=16},
   [TID.PORTAL_2]={w=16,h=16},
   [TID.PORTAL_3]={w=16,h=16},
+  [TID.FOUNT_1]={w=16,h=16},
+  [TID.FOUNT_2]={w=16,h=16},
+  [TID.FOUNT_3]={w=16,h=16},
  },
  
  ---------------------------------------------------

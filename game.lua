@@ -90,13 +90,16 @@ function TICInstrux()
  if Blink(0.5) then
   print("- Press FIRE to continue -",50,124,4)
  end
- if btnp(BTN.FIRE) then StartLevel(D_LVL or 1) end
+ if btnp(BTN.FIRE) then StartLevel(1) end
 end
 
 function TICLvlSel()
+ local mx,my=GetDpadP()
+ A.sel=S3Clamp(A.sel-my,1,#LVL)
+
  cls(0)
  PrintC("Select level",120,10,15)
- local X,Y=20,100
+ local X,Y=20,50
  local RH=10
  for i=1,#LVL do
   local y=Y+RH*i
@@ -108,12 +111,13 @@ function TICLvlSel()
    locked and 2 or (i==A.sel and 14 or 15))
  end
  spr(S.ARROW,X,A.sel*RH+Y)
- local mx,my=GetDpadP()
- A.sel=A.sel+my
- A.sel=A.sel<1 and #LVL or
-  (A.sel>#LVL and 1 or A.sel)
  if btnp(BTN.FIRE) and not IsLvlLocked(A.sel) then
   StartLevel(A.sel)
+ end
+ if IsLvlLocked(A.sel) then
+  PrintC("This level is locked",120,110,2)
+ else
+  if Blink(0.3,0.2) then PrintC("Press Z to select",120,110,4) end
  end
 end
 

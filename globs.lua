@@ -1,9 +1,8 @@
 -- Debug:
 local D_INVULN=false
-local D_LVL=1
 local D_SHOWFPS=false
-local D_STARTGREN=0
-local D_HCL=0
+local D_STARTGREN=nil
+local D_HCL=99
 
 -- Tile size in world coords
 local TSIZE=50
@@ -151,7 +150,7 @@ local G_INIT={
  hp=50,
  -- Ammo.
  ammo=20,
- grens=D_STARTGREN,
+ grens=D_STARTGREN or 5,
 
  -- time, as per G.clk when plr last threw grenade
  lastGrenT=-999,
@@ -233,6 +232,7 @@ local E={
  PILLAR=51,
  TREE=67,
  PORTAL=80,
+ FOUNT=81,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -261,6 +261,7 @@ local ANIM={
   TID.FIREBALL_2}},
  PORTAL={inter=0.2,tids={TID.PORTAL_1,TID.PORTAL_2,
   TID.PORTAL_3,TID.PORTAL_2}},
+ FOUNT={inter=0.2,tids={TID.FOUNT_1,TID.FOUNT_2,TID.FOUNT_3}},
 }
 
 -- possible Y anchors for entities
@@ -385,6 +386,11 @@ local ECFG={
  [E.TREE]={
   w=20,h=40,
   tid=TID.TREE,
+  solid=true,
+ },
+ [E.FOUNT]={
+  w=30,h=30,
+  anim=ANIM.FOUNT,
   solid=true,
  },
 }
