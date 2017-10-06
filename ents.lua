@@ -153,8 +153,8 @@ function CheckGrenBlast(gren)
   local e=G.ents[i]
   if e.vuln and e.bill.vis and e.hp then
    local d2=DistSqXZ(e.x,e.z,gren.x,gren.z)
-   -- Main target takes 4 damage, others take 1.
-   local dmg=(e==et and 4 or 1)
+   -- Main target takes 40 damage, others take 10.
+   local dmg=(e==et and 40 or 10)
    if d2<BLASTR2 then HurtEnt(e,dmg) end
   end
  end

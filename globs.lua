@@ -1,5 +1,5 @@
 -- Debug:
-local D_INVULN=true
+local D_INVULN=false
 local D_SHOWFPS=false
 local D_STARTGREN=nil
 local D_HCL=99
