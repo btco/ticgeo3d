@@ -35,7 +35,8 @@ function MinimapTick()
    S3.VP_B-S3.VP_T+1)
  cls(0)
  local startx,starty=MinimapFromWorld(0,0)
- map(c0,r0,cols,rows,startx,starty,0,1,MinimapRemap)
+ map(c0,r0,cols,rows,S3Round(startx),
+   S3Round(starty),0,1,MinimapRemap)
 
  if Blink(0.2,0.1) then
   local px,py=MinimapFromWorld(G.ex,G.ez)
@@ -51,6 +52,10 @@ function MinimapTick()
 end
 
 function MinimapRemap(t,c,r)
+ -- c,r are relative to full map, not level.
+ -- So we have to convert:
+ local c0,r0=MapPageStart(G.lvl.pg)
+ c,r=c-c0,r-r0
  if not G.mmseen[r*240+c] then return T.VOID end
  if TD[t] then return t end
  if MMTILES[t] then return t end
