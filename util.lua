@@ -36,8 +36,15 @@ end
 function IsInSolidTile(x,z)
  local c,r=floor(x/TSIZE),floor(z/TSIZE)
  local t=LvlTile(c,r)
+ -- Special cases: the VOID tile is always solid,
+ -- the FLOOR tile is always non-solid
+ if t==T.VOID then return true end
+ if t==T.FLOOR then return false end
+ -- Otherwise, look at the TD (tile definition).
  local td=TD[t]
+ -- If there's no tile definition, it's not solid.
  if not td then return false end
+ -- Otherwise let the NSLD (not-solid) flag decide.
  return 0==td.f&TF.NSLD
 end
 

@@ -203,8 +203,10 @@ local G_INIT={
 
 -- tile numbers
 local T={
- EMPTY=0,    -- empty type on map.
- SOLID=16,   -- solid tile on map.
+ VOID=0,     -- void tiles on map (player can't
+             -- walk on void tiles).
+ FLOOR=16,   -- floor tile on map (space where player
+             -- can walk).
 }
 
 -- sprite numbers
@@ -242,6 +244,7 @@ local E={
 -- Tiles that appear in mini map despite not
 -- being walls/doors
 local MMTILES={
+ [T.FLOOR]=true,
  [E.PILLAR]=true,
  [E.TREE]=true,
  [E.PORTAL]=true,

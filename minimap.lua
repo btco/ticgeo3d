@@ -51,9 +51,9 @@ function MinimapTick()
 end
 
 function MinimapRemap(t,c,r)
- if not G.mmseen[r*240+c] then return 0 end
+ if not G.mmseen[r*240+c] then return T.VOID end
  if TD[t] then return t end
  if MMTILES[t] then return t end
- return 0
+ return t==T.VOID and T.VOID or T.FLOOR
 end
 

@@ -59,7 +59,7 @@ function DoorOpen(c,r)
  end
  -- Start door open animation.
  G.doorAnim={w=w,phi=0,irx=w.rx,irz=w.rz}
- LvlTile(c,r,T.EMPTY)  -- becomes empty tile
+ LvlTile(c,r,T.FLOOR)  -- becomes floor tile
  IwallDel(c,r)
  Snd(SND.DOOR)
  return true
@@ -197,7 +197,7 @@ function PullLever(c,r)
  assert(w)
  IwallDel(gatec,gater)
  S3WallDel(w)
- LvlTile(gatec,gater,T.EMPTY)
+ LvlTile(gatec,gater,T.FLOOR)
  Say("THE GATE OPENED!")
 end
 
