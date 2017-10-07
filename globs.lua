@@ -2,7 +2,7 @@
 local D_INVULN=false
 local D_SHOWFPS=false
 local D_STARTGREN=nil
-local D_HCL=99
+local D_HCL=nil
 
 -- Tile size in world coords
 local TSIZE=50

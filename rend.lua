@@ -42,11 +42,13 @@ function RendHud(full)
  local HUDY=120
  local BOXW,BOXH,BOXCLR=14,8,9
  local HPX,HPY=25,HUDY+6
- local AMMOX,AMMOY=89,HUDY+6
- local GRENX,GRENY=153,HUDY+6
+ local AMMOX,AMMOY=65,HUDY+6
+ local GRENX,GRENY=105,HUDY+6
  if full then
   local c0,r0=MapPageStart(63)
   map(c0,r0,30,2,0,HUDY)
+  print("Hold S for",22*8,HUDY+4,9)
+  print("map/help",22*8,HUDY+10,9)
  else
   rect(HPX,HPY,BOXW,BOXH,BOXCLR)
   rect(AMMOX,AMMOY,BOXW,BOXH,BOXCLR)
@@ -59,8 +61,9 @@ function RendHud(full)
  if G.justHurt then
   print("-"..G.justHurt.hp,100,10,15,true,2)
  end
- if G.hasKey then
-  spr(S.HUD_KEY,26*8,HUDY+8)
+ if G.hasKey and not G.paintedKey then
+  spr(S.HUD_KEY,18*8,HUDY+8)
+  G.paintedKey=true
  end
 end
 
