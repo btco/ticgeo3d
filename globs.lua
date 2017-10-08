@@ -2,7 +2,7 @@
 local D_INVULN=false
 local D_SHOWFPS=false
 local D_STARTGREN=nil
-local D_HCL=nil
+local D_HCL=99
 local D_HASKEY=false
 
 -- Tile size in world coords
@@ -556,6 +556,8 @@ local LVL={
  --   pgw,pgh: width and height of level, in pages
  --   floorC: floor color
  --   ceilC: ceiling color
+ --   wallCmt: color mapping table for walls
+ --     (maps TID to CMT).
  {
   name="The Dungeons",
   pg=0,pgw=1,pgh=2,
@@ -565,6 +567,9 @@ local LVL={
   name="The Garden",
   pg=1,pgw=1,pgh=2,
   floorC=7,ceilC=0,
+  wallCmt={
+   [TID.STONE]={[2]=6},
+  },
  },
  {
   name="The City",

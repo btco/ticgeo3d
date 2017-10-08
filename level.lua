@@ -34,6 +34,9 @@ end
 function AddWall(w,c,r,interest)
  S3WallAdd(w)
  if interest then IwallAdd(c,r,w) end
+ -- Apply the CMT (color mapping table) if the level
+ -- requires it.
+ if G.lvl.wallCmt then w.cmt=G.lvl.wallCmt[w.tid] end
 end
 
 -- Add a wall of interest at col/row.

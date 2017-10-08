@@ -146,6 +146,7 @@ local S3={
  --  in world coords (y coord is auto, goes from
  --  FLOOR_Y to CEIL_Y)
  --  tid: texture ID
+ --  cmt: color map table (to replace texture colors)
  --
  --  Computed at render time:
  --   slx,slz,slty,slby: screen space coords of
@@ -533,7 +534,8 @@ function _S3RendHbuf(hbuf)
   if w then
    local z=_S3Interp(w.slx,w.slz,w.srx,w.srz,x)
    local u=_S3PerspTexU(w,x)
-   _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z)
+   _S3RendTexCol(w.tid,x,hb.ty,hb.by,u,z,nil,nil,nil,
+     nil,nil,w.cmt)
   end
  end
 end
