@@ -236,6 +236,17 @@ local G_INIT={
 
  -- overwritten tiles, indexed as r*240+c.
  otiles={},
+
+ -- list of spawners, that is, groups of entities
+ -- that get spawned in response to a trigger.
+ -- This is keyed by label (when trigger X happens,
+ -- all entities listed in spawner[X] get spawned).
+ spawners={},
+
+ -- IDs of triggers that have already fired.
+ -- Maps each ID to the value true, so you can test
+ -- with "if trigdone[trigid] then ..."
+ trigdone={},
 }
 
 -- tile numbers
@@ -244,6 +255,8 @@ local T={
              -- walk on void tiles).
  FLOOR=16,   -- floor tile on map (space where player
              -- can walk).
+ TRIGGER=7,  -- trigger tile (triggers spawners)
+ SPAWNER=6,  -- spawner (spawns entities)
 }
 
 -- sprite numbers
@@ -332,7 +345,6 @@ local YANCH={
 --  w,h: entity size in world space
 --  yanch: Y anchor (one of the YANCH.* consts)
 --  tid: texture ID
---  data: fields to shallow-copy to entity as-is
 local ECFG_DFLT={
  yanch=YANCH.FLOOR,
 }

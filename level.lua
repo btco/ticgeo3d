@@ -123,21 +123,27 @@ function LoadLevel(lvlNo)
  S3Reset()
  S3.FLOOR_CLR,S3.CEIL_CLR=lvl.floorC,lvl.ceilC
  G.ex=nil
+
+ -- First, load all spawners.
+ LoadSpawners()
+
+ -- Now load regular entities and tiles.
  for r=0,lvl.pgh*17-1 do
   for c=0,lvl.pgw*30-1 do
    local cx,cz=(c+0.5)*TSIZE,(r+0.5)*TSIZE
    local t=LvlTile(c,r)
+   local lbl=TileLabel(c,r)
    local td=TD[t]
    if td then AddWalls(c,r,td) end
    if t==S.FLAG then
-    local lbl=TileLabel(c,r)
     assert(lbl)
     if lbl==0 then
      -- Player start pos
      G.ex,G.ez=cx,cz
     end
    end
-   if not D_NOENTS and ECFG[t] then
+   if not D_NOENTS and ECFG[t] then 
+    -- It's an entity.
     EntAdd(t,cx,cz)
    end
   end
@@ -146,6 +152,60 @@ function LoadLevel(lvlNo)
 
  -- Create weapon overlay.
  G.weapOver=S3OverAdd({sx=84,sy=94,tid=460,scale=2})
+end
+
+-- Loads all spawners in the level, storing them in
+-- G.spawners.
+function LoadSpawners()
+ local cols,rows=LvlSize()
+ G.spawners={}
+ for r=0,rows-1 do
+  for c=0,cols-1 do
+   local t=LvlTile(c,r)
+   if t==T.SPAWNER then LoadSpawner(c,r) end
+  end
+ end
+end
+
+-- Loads the spawner located at the given position.
+function LoadSpawner(c0,r0)
+ local lbl=TileLabel(c0,r0)
+ assert(lbl)
+ LvlTile(c0,r0,T.FLOOR) -- remove spawner from map
+ if not G.spawners[lbl] then G.spawners[lbl]={} end
+ -- All entities around the spawner tile get absorbed
+ -- into the spawner.
+ for r=r0-1,r0+1 do
+  for c=c0-1,c0+1 do
+   local t=LvlTile(c,r)
+   if ECFG[t] then
+    -- It's an entity. Remove it from the map so it
+    -- doesn't spawn normally.
+    LvlTile(c,r,T.FLOOR)
+    -- Add it to the spawner.
+    local cx,cz=(c+0.5)*TSIZE,(r+0.5)*TSIZE
+    table.insert(G.spawners[lbl],{x=cx,z=cz,eid=t})
+   end
+  end
+ end
+end
+
+-- Checks if player stepped on a trigger tile. If
+-- so, do the appropriate thing.
+function CheckTriggers()
+ local c,r=floor(G.ex/TSIZE),floor(G.ez/TSIZE)
+ if LvlTile(c,r)~=T.TRIGGER then return end
+ local lbl=TileLabel(c,r)
+ if not lbl or G.trigdone[lbl] then return end
+ G.trigdone[lbl]=true
+ local spawner=G.spawners[lbl]
+ if not spawner then return end
+ for i=1,#spawner do
+  local s=spawner[i]
+  local ent=EntAdd(s.eid,s.x,s.z)
+  -- Spawned entities are awake by default.
+  ent.asleep=false
+ end
 end
 
 -- Returns the level tile at c,r.

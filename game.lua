@@ -184,6 +184,7 @@ function TICPlay()
  end
 
  DoorAnimUpdate(dt)
+ CheckTriggers()
  UpdateFocusTile()
  UpdateJustHurt()
  UpdatePlrAtk()
