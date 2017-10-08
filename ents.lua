@@ -121,8 +121,10 @@ function UpdateEnts()
  for i=1,#ents do
   local e=ents[i]
   UpdateEnt(e)
-  -- If entity was seen, it's now awake.
-  e.asleep=e.asleep and not e.bill.vis
+  if not D_NOAWAKE then
+   -- If entity was seen, it's now awake.
+   e.asleep=e.asleep and not e.bill.vis
+  end
  end
  -- Delete dead entities.
  for i=#ents,1,-1 do
