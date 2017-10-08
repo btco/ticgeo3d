@@ -15,8 +15,25 @@ local PLR_CS=20
 local FLOOR_Y=S3.FLOOR_Y
 local CEIL_Y=S3.CEIL_Y
 
--- Original palette (saved at boot time).
-local ORIG_PAL={}
+-- Original palette.
+local ORIG_PAL={
+ [0]=0x140c1c,
+ [1]=0x2c2c2c,
+ [2]=0x716d69,
+ [3]=0xaaaeaa,
+ [4]=0x04ff04,
+ [5]=0x04ce04,
+ [6]=0x008100,
+ [7]=0x004000,
+ [8]=0x382800,
+ [9]=0x693800,
+ [10]=0x9d5500,
+ [11]=0xc28900,
+ [12]=0x00e6ff,
+ [13]=0xbabe10,
+ [14]=0xeaea5e,
+ [15]=0xdeeed6,
+}
 
 -- Buttons
 local BTN={

@@ -1,5 +1,4 @@
 function Boot()
- PalInit()
  S3Init()
  SetMode(MODE.TITLE)
 end

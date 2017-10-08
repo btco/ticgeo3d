@@ -1,21 +1,13 @@
--- Initializes palette.
-function PalInit()
- for c=0,15 do
-  ORIG_PAL[c]={
-   r=peek(0x3fc0+3*c),
-   g=peek(0x3fc0+3*c+1),
-   b=peek(0x3fc0+3*c+2)
-  }
- end
-end
-
 -- tint: optional, {r,g,b,a} in 0-255 range.
 function PalSet(tint)
  tint=tint or {r=0,g=0,b=0,a=0}
  for c=0,15 do
-  local r=_S3Interp(0,ORIG_PAL[c].r,255,tint.r,tint.a)
-  local g=_S3Interp(0,ORIG_PAL[c].g,255,tint.g,tint.a)
-  local b=_S3Interp(0,ORIG_PAL[c].b,255,tint.b,tint.a)
+  local origR=(ORIG_PAL[c]&0xff0000)>>16
+  local origG=(ORIG_PAL[c]&0xff00)>>8
+  local origB=(ORIG_PAL[c]&0xff)
+  local r=_S3Interp(0,origR,255,tint.r,tint.a)
+  local g=_S3Interp(0,origG,255,tint.g,tint.a)
+  local b=_S3Interp(0,origB,255,tint.b,tint.a)
   poke(0x3fc0+3*c,clamp(S3Round(r),0,255))
   poke(0x3fc0+3*c+1,clamp(S3Round(g),0,255))
   poke(0x3fc0+3*c+2,clamp(S3Round(b),0,255))
