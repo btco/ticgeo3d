@@ -234,6 +234,8 @@ function CheckLevelEnd()
   -- Player stepped through portal
   SetMode(MODE.EOL)
   music(-1)
+  Snd(SND.EOL)
+  MarkLvlDone(G.lvlNo)
  end
 end
 

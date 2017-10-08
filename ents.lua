@@ -317,6 +317,7 @@ function EntBehShoots(e)
  local vx,vz=V2Normalize(G.ex-e.x,G.ez-e.z)
  local shot=EntAdd(e.shot,e.x,e.z)
  shot.vx,shot.vz=vx*e.shotSpd,vz*e.shotSpd
+ if e.shotSnd then Snd(e.shotSnd) end
 end
 
 function EntBehHurtsPlr(e)

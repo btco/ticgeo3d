@@ -15,9 +15,9 @@ local SCRH=136
 -- Also set the appropriate texture params in S3.TEX
 -- below.
 local TID={
-  STONE=256,     -- stone wall
-  WOOD=116,      -- wood wall
-  DOOR=260,      -- door
+  STONE=116,     -- stone wall
+  WOOD=256,      -- wood wall
+  DOOR=112,      -- door
   LDOOR=264,     -- locked door
   CYC_W1=320,    -- cyclops walk 1
   CYC_ATK=324,   -- cyclops attack
@@ -49,7 +49,7 @@ local TID={
   PILLAR=15,
   LEVER=328,       -- wall with a lever on it
   LEVER_P=332,     -- wall with a lever on it (pulled)
-  GATE=112,
+  GATE=260,
   TREE=46,
   PORTAL_1=152,PORTAL_2=154,PORTAL_3=156,
   FOUNT_1=120,FOUNT_2=122,FOUNT_3=124,

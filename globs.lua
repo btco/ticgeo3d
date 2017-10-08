@@ -2,7 +2,8 @@
 local D_INVULN=false
 local D_SHOWFPS=false
 local D_STARTGREN=nil
-local D_HCL=99
+local D_HCL=nil
+local D_HASKEY=true
 
 -- Tile size in world coords
 local TSIZE=50
@@ -145,6 +146,7 @@ local G_INIT={
  --   shot: EID of projectile.
  --   shotInt: interval between successive shots (sec)
  --   shotSpd: speed of the shot (units/sec)
+ --   shotSnd: shot sound.
  --
  --   hurtsPlr: if true, hurts player on contact.
  --   dmgMin,dmgMax: min/max damage caused.
@@ -190,7 +192,7 @@ local G_INIT={
  msgCd=0,
 
  -- Do we have the key? (That opens locked doors).
- hasKey=false,
+ hasKey=D_HASKEY or false,
 
  -- Current flash fx, if any
  flash=nil,
@@ -281,6 +283,22 @@ local ANIM={
   TID.PORTAL_3,TID.PORTAL_2}},
  FOUNT={inter=0.2,tids={TID.FOUNT_1,TID.FOUNT_2,TID.FOUNT_3}},
 }
+
+-- Sound effects.
+local SND={
+ ARROW={sfx=63,note="C-4",dur=6,vol=15,spd=0},
+ HIT={sfx=62,note="E-3",dur=6,vol=15,spd=0},
+ KILL={sfx=62,note="C-2",dur=12,vol=15,spd=-2},
+ BONUS={sfx=61,note="C-4",dur=6,vol=15,spd=-2},
+ HURT={sfx=60,note="C-6",dur=6,vol=15,spd=-2},
+ DOOR={sfx=59,note="C-2",dur=6,vol=15,spd=-1},
+ DIE={sfx=58,note="E-2",dur=30,vol=15,spd=-1},
+ BOOM={sfx=57,note="G-3",dur=30,vol=15,spd=-2},
+ SPIT={sfx=56,note="C-2",dur=6,vol=15,spd=1},
+ FAIL={sfx=55,note="C-2",dur=10,vol=15,spd=0},
+ EOL={sfx=54,note="F-2",dur=30,vol=15,spd=-2},
+}
+
 
 -- possible Y anchors for entities
 local YANCH={
@@ -374,6 +392,7 @@ local ECFG={
   shot=E.FIREBALL,
   shotInt=2.0,
   shotSpd=200,
+  shotSnd=SND.SPIT,
   hp=20,
   vuln=true,
   solid=true,
@@ -539,17 +558,6 @@ local LVL={
 }
 
 DEBUGS=nil
-
-local SND={
- ARROW={sfx=63,note="C-4",dur=6,vol=15,spd=0},
- HIT={sfx=62,note="E-3",dur=6,vol=15,spd=0},
- KILL={sfx=62,note="C-2",dur=12,vol=15,spd=-2},
- BONUS={sfx=61,note="C-4",dur=6,vol=15,spd=-2},
- HURT={sfx=60,note="C-6",dur=6,vol=15,spd=-2},
- DOOR={sfx=59,note="C-2",dur=6,vol=15,spd=-1},
- DIE={sfx=58,note="E-2",dur=30,vol=15,spd=-1},
- BOOM={sfx=57,note="G-3",dur=30,vol=15,spd=-2},
-}
 
 local PFX={
  KILL={

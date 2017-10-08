@@ -28,7 +28,7 @@ function TICTitle()
  local c,r=MapPageStart(62)
  map(c,r,30,17)
  if Blink(0.3,0.2) then
-  PrintC("- Press Z to play -",120,110)
+  PrintC("- Press Z to play -",120,80)
  end
  if btnp(BTN.FIRE) then
   -- If player already cleared one or more
@@ -97,9 +97,11 @@ function TICLvlSel()
  local mx,my=GetDpadP()
  A.sel=S3Clamp(A.sel-my,1,#LVL)
 
+ local c,r=MapPageStart(62)
  cls(0)
+ map(c,r+10,30,17,0,80)
  PrintC("Select level",120,10,15)
- local X,Y=20,50
+ local X,Y=40,20
  local RH=10
  for i=1,#LVL do
   local y=Y+RH*i
@@ -117,7 +119,9 @@ function TICLvlSel()
  if IsLvlLocked(A.sel) then
   PrintC("This level is locked",120,110,2)
  else
-  if Blink(0.3,0.2) then PrintC("Press Z to select",120,110,4) end
+  if Blink(0.3,0.2) then
+   PrintC("Press Z to select",120,80,4)
+  end
  end
 end
 
@@ -129,7 +133,7 @@ end
 function TICEol()
  cls(0)
  PrintC("Level clear!",120,60)
- if A.mclk>1 then
+ if A.mclk>3 then
   if G.lvlNo<#LVL then
    -- Go to next level.
    StartLevel(G.lvlNo+1)
@@ -205,6 +209,7 @@ function UpdatePlrAtk()
     G.atke=0
    else
     Say("No arrows left!")
+    Snd(SND.FAIL)
    end
   end
  else
@@ -233,7 +238,7 @@ function UpdatePlrAtk()
    G.grens=G.grens-1
   elseif G.grens==0 then
    Say("No flame orbs left!")
-   -- TODO: error sfx
+   Snd(SND.FAIL)
   end
  end
 

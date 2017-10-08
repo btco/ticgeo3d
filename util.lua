@@ -196,3 +196,7 @@ function IsLvlLocked(l)
  return l>hcl+1
 end
 
+function MarkLvlDone(l)
+ pmem(0,max(pmem(0) or 0,l))
+end
+
