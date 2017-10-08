@@ -11,7 +11,7 @@ function EntAdd(etype,x,z)
  e.etype=etype
  e.ctime=G.clk
  e.bill={x=e.x,y=e.y,z=e.z,w=e.w,h=e.h,
-  tid=e.tid,ent=e}
+  tid=e.tid,ent=e,cmt=e.cmt}
  S3BillAdd(e.bill)
  table.insert(G.ents,e)
  return e
@@ -67,6 +67,9 @@ function HurtEnt(e,dmg)
   S3PartsSpawn(e.x,e.y,e.z,PFX.KILL)
  else
   Snd(SND.HIT)
+  if e.wanderOnHurt then
+   EntStartWander(e,0.3)
+  end
  end
 end
 
@@ -249,13 +252,17 @@ function EntBehPursues(e)
  if not bestx or (bestmx==0 and bestmz==0) then
   -- We're stuck (no good direction found).
   -- Wander in a random direction for a bit.
-  e.pursueWcd=e.wanderTime or 2
-  local phi=random()*6.28
-  e.pursueWvx=e.speed*cos(phi)
-  e.pursueWvz=e.speed*sin(phi)
+  EntStartWander(e)
   return
  end
  e.x,e.z=bestx,bestz
+end
+
+function EntStartWander(e,time)
+ e.pursueWcd=time or (e.wanderTime or 2)
+ local phi=random()*6.28
+ e.pursueWvx=e.speed*cos(phi)
+ e.pursueWvz=e.speed*sin(phi)
 end
 
 function EntBehVel(e)

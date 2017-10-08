@@ -136,6 +136,9 @@ local G_INIT={
  --   hurtT: time when enemy was last hurt
  --     (for animation)
  --
+ --   wanderOnHurt: (bool) if true, wander for a bit
+ --     after being hurt.
+ --
  --   vx,vz: if set, this is the velocity.
  --
  --   shoots: if true, shoots player.
@@ -246,6 +249,7 @@ local E={
  TREE=67,
  PORTAL=80,
  FOUNT=81,
+ BIGZOMB=82,
  -- Dynamic ents that don't appear on map:
  ARROW=1000,
  FIREBALL=1001,
@@ -296,15 +300,38 @@ local ECFG_DFLT={
 -- Entity params overrides (non-default) by type:
 local ECFG={
  [E.ZOMB]={
-  w=50,h=50,
+  w=40,h=40,
   anim=ANIM.ZOMBW,
   pursues=true,
   idealDist2=2500,
   wanderTime=0.7,
-  speed=40,
+  wanderOnHurt=true,
+  speed=60,
   attacks=true,
   dmgMin=5,dmgMax=15,
   hp=20,
+  vuln=true,
+  solid=true,
+  asleep=true,
+  attseq={
+   {t=0.3,tid=TID.CYC_PRE},
+   {t=0.5,tid=TID.CYC_ATK,dmg=true},
+   {t=0.8,tid=TID.CYC_W1},
+  },
+ },
+ [E.BIGZOMB]={
+  w=60,h=70,
+  anim=ANIM.ZOMBW,
+  -- replace green w/ yellow
+  cmt={[5]=14,[6]=11,[7]=10,[4]=14},
+  pursues=true,
+  idealDist2=2500,
+  wanderTime=0.7,
+  wanderOnHurt=true,
+  speed=40,
+  attacks=true,
+  dmgMin=15,dmgMax=30,
+  hp=100,
   vuln=true,
   solid=true,
   asleep=true,
@@ -321,7 +348,7 @@ local ECFG={
   pursues=true,
   idealDist2=2500,
   wanderTime=1.2,
-  speed=60,
+  speed=50,
   attacks=true,
   dmgMin=5,dmgMax=15,
   hp=20,

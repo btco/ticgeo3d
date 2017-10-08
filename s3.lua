@@ -211,6 +211,8 @@ local S3={
  --   sx,sy: screen position on which to render
  --   scale: scale factor (integer -- 2, 3, etc)
  --   tid: texture ID
+ --   cmt: (optional) color map table
+ --    indicate colors to substitute on the texture
  overs={},
  -- Potentially visible billboards, z-ordered
  -- from near to far. Computed every frame.
@@ -609,7 +611,7 @@ function _S3RendBill(b)
   if not hb or not hb.wall or hb.z>z then
    local u=_S3Interp(lx,0,rx,1,x)
    if _S3RendTexCol(tid,x,ty,by,u,z,nil,nil,
-     0,true,b.clrO) then b.vis=true end
+     0,true,b.clrO,b.cmt) then b.vis=true end
   end
  end
 end
@@ -724,9 +726,11 @@ end
 --    is false)
 --   clrO: if not nil, override color (all pixels
 --    will have this color unless transparent).
+--   cmt: color mapping table (if not nil, this
+--    indicates color replacements)
 -- Returns true if any pixels were actually drawn.
 function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
-    wsten,clrO)
+    wsten,clrO,cmt)
  ty=S3Round(ty)
  by=S3Round(by)
  local td=S3.TEX[tid]
@@ -748,6 +752,7 @@ function _S3RendTexCol(tid,x,ty,by,u,z,v0,v1,ck,
    -- since walls are never slanted.
    local v=_S3Interp(ty,v0,by,v1,y)
    local clr=_S3TexSamp(tid,td,u,v)
+   clr=(cmt and cmt[clr]) or clr
    if clr~=ck then
     if not clrO then
      clr=_S3ClrMod(clr,lf,x,y)
