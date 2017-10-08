@@ -54,7 +54,12 @@ function RendHud(full)
   rect(AMMOX,AMMOY,BOXW,BOXH,BOXCLR)
   rect(GRENX,GRENY,BOXW,BOXH,BOXCLR)
  end
- print(To2Dig(G.hp),HPX+2,HPY+1,15,true)
+
+ if G.hp>20 or Blink(0.3,0.2) then
+  print(To2Dig(G.hp),HPX+2,HPY+1,
+    G.hp>20 and 15 or 14,true)
+ end
+
  print(To2Dig(G.ammo),AMMOX+2,AMMOY+1,15,true)
  print(To2Dig(G.grens),GRENX+2,GRENY+1,15,true)
 
