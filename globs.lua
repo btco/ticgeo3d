@@ -5,6 +5,7 @@ local D_STARTGREN=nil
 local D_HCL=nil
 local D_HASKEY=false
 local D_NOAWAKE=false
+local D_CLEARPMEM=false
 
 -- Tile size in world coords
 local TSIZE=50

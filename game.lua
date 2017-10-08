@@ -1,4 +1,5 @@
 function Boot()
+ if D_CLEARPMEM then pmem(0,0) end
  S3Init()
  SetMode(MODE.TITLE)
 end
@@ -90,7 +91,7 @@ function TICInstrux()
  local Y=32
  print("Strafe",X,Y,3)
  print("Open/Use",X,Y+16,3)
- print("Grenade",X,Y+48,14)
+ print("Flame orb",X,Y+48,14)
  print("FIRE",X,Y+64,4)
 
  print("Move",168,96,15)
