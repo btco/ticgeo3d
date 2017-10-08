@@ -11,14 +11,12 @@ if ! [ -f "$TIC" ]; then
   exit 1
 fi
 
-echo "Creating export cartridge."
-cp -vf fps80.tic fps80-export.tic
-
 echo "We will now launch TIC with the injected code."
 echo "Save the cartridge as 'fps80-export'."
+echo "Then use the FOLDER command to reveal the cart."
 echo "Press ENTER."
 read foo
 
 echo "Injecting output code into cart."
-"$TIC" fps80-export.tic -code out.lua 
+"$TIC" fps80.tic -code out.lua 
 
