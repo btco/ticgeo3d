@@ -65,6 +65,11 @@ function RendHud(full)
   spr(S.HUD_KEY,18*8,HUDY+8)
   G.paintedKey=true
  end
+
+ if G.lvlNo==1 and G.clk<5 then
+  rect(0,5,200,9,15)
+  print("Z = shoot, X = throw flame orb",2,7,0)
+ end
 end
 
 -- Render the "interaction hint" text.

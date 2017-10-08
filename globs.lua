@@ -2,7 +2,7 @@
 local D_INVULN=false
 local D_SHOWFPS=false
 local D_STARTGREN=nil
-local D_HCL=nil
+local D_HCL=99
 
 -- Tile size in world coords
 local TSIZE=50
@@ -161,7 +161,7 @@ local G_INIT={
  ents={},
 
  -- Player's hitpoints (floating point, 0-100)
- hp=50,
+ hp=75,
  -- Ammo.
  ammo=20,
  grens=D_STARTGREN or 5,
@@ -300,13 +300,13 @@ local ECFG_DFLT={
 -- Entity params overrides (non-default) by type:
 local ECFG={
  [E.ZOMB]={
-  w=40,h=40,
+  w=50,h=50,
   anim=ANIM.ZOMBW,
   pursues=true,
   idealDist2=2500,
   wanderTime=0.7,
   wanderOnHurt=true,
-  speed=60,
+  speed=50,
   attacks=true,
   dmgMin=5,dmgMax=15,
   hp=20,
@@ -328,9 +328,9 @@ local ECFG={
   idealDist2=2500,
   wanderTime=0.7,
   wanderOnHurt=true,
-  speed=40,
+  speed=50,
   attacks=true,
-  dmgMin=15,dmgMax=30,
+  dmgMin=10,dmgMax=25,
   hp=100,
   vuln=true,
   solid=true,
@@ -531,6 +531,11 @@ local LVL={
   pg=2,pgw=1,pgh=2,
   floorC=2,ceilC=0,
  },
+-- {
+--  name="TEST",
+--  pg=3,pgw=1,pgh=2,
+--  floorC=7,ceilC=0,
+-- },
 }
 
 DEBUGS=nil

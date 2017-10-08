@@ -462,7 +462,15 @@ end
 -- Calculates how to iterate over the HBUF in the
 -- given frame to account for possible interleaving.
 -- Returns startx,endx,step to be used for iteration.
+-- Returns nil,nil,nil to indicate nothing should
+-- be iterated.
 function _S3AdjHbufIter(startx,endx)
+ startx=S3Round(startx)
+ endx=S3Round(endx)
+ if startx<0 and endx<0 then return nil,nil,nil end
+ if startx>=240 and endx>=240 then return nil,nil,nil end
+ startx=max(startx,0)
+ endx=min(endx,239)
  if not S3.ILEAVE then
   return startx,endx,1
  end
@@ -501,6 +509,7 @@ function _AddWallToHbuf(hbuf,w)
  local step
  local nclip,fclip=S3.NCLIP,S3.FCLIP
  startx,endx,step=_S3AdjHbufIter(startx,endx)
+ if not startx then return end
 
  for x=startx,endx,step do
   -- hbuf is 1-indexed (because Lua)
@@ -517,6 +526,7 @@ end
 
 function _S3RendHbuf(hbuf)
  local startx,endx,step=_S3AdjHbufIter(S3.VP_L,S3.VP_R)
+ if not startx then return end
  for x=startx,endx,step do
   local hb=hbuf[x+1]  -- hbuf is 1-indexed
   local w=hb.wall
@@ -601,6 +611,7 @@ function _S3RendBill(b)
 
  local lx,rx,z=b.slx,b.srx,b.sz
  local startx,endx,step=_S3AdjHbufIter(lx,rx)
+ if not startx then return end
  local tid=b.tid
  local ty,by=b.sty,b.sby
  local hbuf=S3.hbuf
@@ -629,6 +640,7 @@ function _S3RendOver(o)
  local h=td.h*scale
  local lx,rx=o.sx,o.sx+w-1
  local startx,endx,step=_S3AdjHbufIter(lx,rx)
+ if not startx then return end
  for x=startx,endx,step do
   for y=o.sy,o.sy+h-1 do
    local t=_S3GetTexel(o.tid,(x-lx)//scale,
@@ -791,6 +803,7 @@ function _S3RendFlats(hbuf)
  local scrw,scrh=SCRW,SCRH
  local ceilC,floorC=S3.CEIL_CLR,S3.FLOOR_CLR
  local startx,endx,step=_S3AdjHbufIter(S3.VP_L,S3.VP_R)
+ if not startx then return end
  for x=startx,endx,step do
   local cby=scrh//2 -- ceiling bottom y
   local fty=scrh//2+1 -- floor top y
