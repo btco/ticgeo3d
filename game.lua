@@ -35,6 +35,8 @@ end
 function TICTitle()
  local c,r=MapPageStart(62)
  map(c,r,30,17)
+ PrintC("3D first-person shooter",
+   120,50,2)
  if Blink(0.3,0.2) then
   PrintC("- Press Z to play -",120,80)
  end
