@@ -233,6 +233,7 @@ function CheckLevelEnd()
  if TD[t] and TD[t].f&TF.PORTAL then
   -- Player stepped through portal
   SetMode(MODE.EOL)
+  music(-1)
  end
 end
 
