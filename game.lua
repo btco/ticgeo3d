@@ -1,11 +1,19 @@
 function Boot()
  PalInit()
  S3Init()
+ SetMode(MODE.TITLE)
 end
 
 function SetMode(m)
+ local old=A.mode
  A.mode,A.mclk=m,0
  PalSet()
+ local mus=MODEMUS[m] or MUS.KEEP
+
+ -- Special case: if returning from minimap, keep music.
+ if old==MODE.MINIMAP and m==MODE.PLAY then mus=MUS.KEEP end
+
+ if mus~=MUS.KEEP then music(mus) end
 end
 
 function TIC()
@@ -65,7 +73,6 @@ end
 
 function EndPreroll()
  cls(0)
- music(0)
  SetMode(MODE.PLAY)
  -- Fully render hud. Thereafter we only render
  -- updates to small parts of it.
@@ -117,7 +124,7 @@ function TICLvlSel()
   StartLevel(A.sel)
  end
  if IsLvlLocked(A.sel) then
-  PrintC("This level is locked",120,110,2)
+  PrintC("This level is locked",120,80,2)
  else
   if Blink(0.3,0.2) then
    PrintC("Press Z to select",120,80,4)
@@ -253,7 +260,6 @@ function HurtPlr(hp)
  if G.hp==0 then
   -- Died.
   SetMode(MODE.DEAD)
-  music(-1)
   Snd(SND.DIE)
   PalSet({r=0,g=0,b=0,a=80})
   return

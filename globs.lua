@@ -44,6 +44,27 @@ local MODE={
  WIN=8,     -- beat entire game.
 }
 
+-- Music tracks:
+local MUS={
+ KEEP=-2,   -- keep playing previous.
+ NONE=-1,   -- no music.
+ PLAY=0,    -- gameplay music.
+ TITLE=1,   -- main title.
+}
+
+-- Music for each mode:
+local MODEMUS={
+ [MODE.TITLE]=MUS.TITLE,
+ [MODE.LVLSEL]=MUS.KEEP,
+ [MODE.PREROLL]=MUS.NONE,
+ [MODE.INSTRUX]=MUS.NONE,
+ [MODE.PLAY]=MUS.PLAY,
+ [MODE.DEAD]=MUS.NONE,
+ [MODE.MINIMAP]=MUS.KEEP,
+ [MODE.EOL]=MUS.NONE,
+ [MODE.WIN]=MUS.NONE,
+}
+
 -- Permanent game state (doesn't reset on every
 -- level).
 local A={  -- A for "App"
