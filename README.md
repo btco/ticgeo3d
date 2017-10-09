@@ -1,6 +1,8 @@
 # FPS80
 A retro 3D first-person shooter game for the [TIC-80](http://tic.computer).
 
+Copyright &copy; 2017 Bruno Oliveira
+
 ![Title screen](https://github.com/btco/ticgeo3d/blob/master/screenshots/basic.png?raw=true)
 
 # How to Play
